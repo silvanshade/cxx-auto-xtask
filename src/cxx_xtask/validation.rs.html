@@ -193,12 +193,12 @@
                 .captures(<span class="kw-2">&amp;</span>haystack)
                 .and_then(|captures| captures.get(<span class="number">1</span>).map(|m| m.as_str()))
             {
-                <span class="kw">if </span>version.starts_with(<span class="kw-2">&amp;</span>config.workspace.clang.version) {
+                <span class="kw">if </span>version.starts_with(<span class="kw-2">&amp;</span>config.xtask.clang.version) {
                     <span class="kw">return </span><span class="prelude-val">Ok</span>(());
                 } <span class="kw">else </span>{
                     <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                         <span class="string">&quot;`{tool}` failed validation; expected version compatible with `{version}` but found `{actual}`&quot;</span>,
-                        version = config.workspace.clang.version,
+                        version = config.xtask.clang.version,
                         actual = version,
                     )
                     .into());
@@ -214,7 +214,7 @@
         }
     }
 
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(matcher) = config.workspace.clang.matchers.get(tool) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(matcher) = config.xtask.clang.matchers.get(tool) {
         <span class="kw">let </span>matcher = regex::Regex::new(matcher)<span class="question-mark">?</span>;
         <span class="kw">return
             </span><span class="comment">// check `tool` with no suffix
@@ -222,7 +222,7 @@
 
             <span class="comment">// check `tool` with suffix
             </span>.or_else(|_err| {
-                <span class="kw">let </span>tool = <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, tool, config.workspace.clang.suffix);
+                <span class="kw">let </span>tool = <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, tool, config.xtask.clang.suffix);
                 <span class="kw">let </span>env = <span class="macro">vec!</span>[];
                 check_tool(config, <span class="kw-2">&amp;</span>matcher, tool, env)
             })
@@ -256,7 +256,7 @@
 <span class="kw">pub fn </span>validate_cargo_component(config: <span class="kw-2">&amp;</span>Config, tool: <span class="kw-2">&amp;</span>str) -&gt; BoxResult&lt;()&gt; {
     <span class="kw">let </span>tool = tool.strip_prefix(<span class="string">&quot;cargo-&quot;</span>).unwrap_or(tool);
     <span class="kw">let </span>component_name = <span class="kw">if </span>tool == <span class="string">&quot;doc&quot; </span>{ <span class="string">&quot;rustdoc&quot; </span>} <span class="kw">else </span>{ tool };
-    <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = config.workspace.rust.components.get(component_name) {
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = config.xtask.rust.components.get(component_name) {
         <span class="kw">let </span>toolchain = <span class="kw">if </span>value.toolchain == <span class="string">&quot;nightly&quot; </span>{
             <span class="kw">crate</span>::config::rust::toolchain::nightly(config)
         } <span class="kw">else </span>{

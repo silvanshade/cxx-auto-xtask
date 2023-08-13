@@ -58,31 +58,28 @@
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>rust_toolchain;
-<span class="kw">mod </span>workspace;
+<span class="kw">mod </span>xtask;
 
 <span class="kw">use </span>std::path::Path;
 
 <span class="kw">pub use </span>rust_toolchain::{RustToolchain, RustToolchainToolchain};
-<span class="kw">pub use </span>workspace::{
-    Workspace,
-    WorkspaceClang,
-    WorkspacePlatform,
-    WorkspacePlatformMacos,
-    WorkspacePlatformMacosSearchPath,
-    WorkspaceRust,
-    WorkspaceRustComponent,
-    WorkspaceRustToolchain,
+<span class="kw">pub use </span>xtask::{
+    Xtask,
+    XtaskClang,
+    XtaskPlatform,
+    XtaskPlatformMacos,
+    XtaskPlatformMacosSearchPath,
+    XtaskRust,
+    XtaskRustComponent,
+    XtaskRustToolchain,
 };
 
 <span class="kw">use </span><span class="kw">crate</span>::BoxResult;
 
 <span class="kw">pub struct </span>Config {
     <span class="kw">pub </span>rust_toolchain: RustToolchain,
-    <span class="kw">pub </span>workspace: Workspace,
+    <span class="kw">pub </span>xtask: Xtask,
 }
 
 <span class="kw">impl </span>Config {
@@ -92,22 +89,19 @@
             <span class="kw">let </span>data = std::fs::read_to_string(path)<span class="question-mark">?</span>;
             toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>workspace: Workspace = {
-            <span class="kw">let </span>path = project_root.join(<span class="string">&quot;workspace.toml&quot;</span>);
+        <span class="kw">let </span>xtask: Xtask = {
+            <span class="kw">let </span>path = project_root.join(<span class="string">&quot;xtask.toml&quot;</span>);
             <span class="kw">let </span>data = std::fs::read_to_string(path)<span class="question-mark">?</span>;
             toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
         </span>};
-        <span class="kw">if </span><span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;nightly-{}&quot;</span>, workspace.rust.toolchain.nightly) != <span class="kw-2">&amp;</span>rust_toolchain.toolchain.channel {
+        <span class="kw">if </span><span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;nightly-{}&quot;</span>, xtask.rust.toolchain.nightly) != <span class="kw-2">&amp;</span>rust_toolchain.toolchain.channel {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;&lt;workspace.json&gt;.rust.toolchain.nightly ({}) != &lt;rust_toolchain.toml&gt;.toolchain.channel ({})&quot;</span>,
-                workspace.rust.toolchain.nightly, rust_toolchain.toolchain.channel,
+                <span class="string">&quot;&lt;xtask.toml&gt;.rust.toolchain.nightly ({}) != &lt;rust_toolchain.toml&gt;.toolchain.channel ({})&quot;</span>,
+                xtask.rust.toolchain.nightly, rust_toolchain.toolchain.channel,
             )
             .into());
         }
-        <span class="prelude-val">Ok</span>(Config {
-            rust_toolchain,
-            workspace,
-        })
+        <span class="prelude-val">Ok</span>(Config { rust_toolchain, xtask })
     }
 }
 

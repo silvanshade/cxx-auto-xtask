@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["WorkspacePlatformMacosSearchPath"],"mod":["rust"],"struct":["Config","RustToolchain","RustToolchainToolchain","Workspace","WorkspaceClang","WorkspacePlatform","WorkspacePlatformMacos","WorkspaceRust","WorkspaceRustComponent","WorkspaceRustToolchain"]};

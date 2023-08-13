@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["help","result","subcommand_result","unused"]};

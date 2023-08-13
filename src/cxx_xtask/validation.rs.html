@@ -254,6 +254,9 @@
 <a href="#254" id="254">254</a>
 <a href="#255" id="255">255</a>
 <a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{config::Config, BoxError, BoxResult};
 <span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>std::{
@@ -281,7 +284,7 @@
         },
         <span class="string">&quot;clang-tidy&quot; </span>=&gt; {
             env_vars.extend(validate_clang_tool(config, tool)<span class="question-mark">?</span>);
-            validate_other_tool(<span class="string">&quot;run-clang-tidy&quot;</span>)<span class="question-mark">?</span>;
+            env_vars.extend(validate_other_tool(<span class="string">&quot;run-clang-tidy&quot;</span>, <span class="kw-2">&amp;</span>env_vars)<span class="question-mark">?</span>);
         },
         <span class="string">&quot;cargo-clippy&quot; </span>=&gt; {
             validate_cargo_component(config, tool)<span class="question-mark">?</span>;
@@ -427,10 +430,13 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="kw">fn </span>validate_other_tool(tool: <span class="kw-2">&amp;</span>str) -&gt; BoxResult&lt;()&gt; {
+<span class="kw">fn </span>validate_other_tool(tool: <span class="kw-2">&amp;</span>str, env_vars: <span class="kw-2">&amp;</span>BTreeMap&lt;OsString, OsString&gt;) -&gt; BoxResult&lt;BTreeMap&lt;OsString, OsString&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(tool);
     cmd.args([<span class="string">&quot;--help&quot;</span>]);
     cmd.stdout(std::process::Stdio::null());
+    <span class="kw">for </span>(key, value) <span class="kw">in </span>env_vars.iter() {
+        cmd.env(key, value);
+    }
     <span class="kw">let </span>status = cmd.status().map_err(|err| -&gt; BoxError {
         <span class="kw">if </span>err.kind() == std::io::ErrorKind::NotFound {
             <span class="macro">format!</span>(<span class="string">&quot;could not find `{tool}` in path&quot;</span>).into()
@@ -441,7 +447,7 @@
     <span class="kw">if </span>!status.success() {
         <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;`{tool}` failed with non-zero exit code&quot;</span>).into());
     }
-    <span class="prelude-val">Ok</span>(())
+    <span class="prelude-val">Ok</span>(BTreeMap::default())
 }
 
 <span class="kw">fn </span>validate_python3() -&gt; BoxResult&lt;()&gt; {

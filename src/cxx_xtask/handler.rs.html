@@ -45,12 +45,14 @@
 <a href="#45" id="45">45</a>
 <a href="#46" id="46">46</a>
 <a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::BoxResult;
 <span class="kw">use </span>std::process::ExitStatus;
 
 <span class="kw">pub fn </span>help(args: <span class="kw-2">&amp;mut </span>pico_args::Arguments, help: <span class="kw-2">&amp;</span>str) -&gt; BoxResult&lt;bool&gt; {
     <span class="kw">if </span>args.contains([<span class="string">&quot;-h&quot;</span>, <span class="string">&quot;--help&quot;</span>]) {
-        <span class="macro">println!</span>(<span class="string">&quot;{help}\n&quot;</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{help}&quot;</span>);
+        <span class="kw">while </span>args.opt_free_from_str::&lt;String&gt;()<span class="question-mark">?</span>.is_some() {}
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
     }
     <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)

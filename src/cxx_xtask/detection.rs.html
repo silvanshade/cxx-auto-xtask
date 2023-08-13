@@ -80,7 +80,6 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::BoxResult;
 <span class="kw">use </span>std::process::Command;
 
@@ -141,8 +140,7 @@
                 <span class="kw">let </span>formula = <span class="macro">format!</span>(<span class="string">&quot;llvm@{major_version}&quot;</span>);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(prefix) = detect_homebrew_prefix(<span class="kw-2">&amp;</span>formula)<span class="question-mark">? </span>{
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = prefix.parent() {
-                        <span class="kw">let </span>path = parent.join(formula);
-                        <span class="macro">println!</span>(<span class="string">&quot;path: {}&quot;</span>, path.display());
+                        <span class="kw">let </span>path = parent.join(formula).join(<span class="string">&quot;bin&quot;</span>);
                         paths.push(path);
                     }
                 }

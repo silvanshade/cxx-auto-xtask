@@ -126,18 +126,18 @@
 </span>}
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
-</span><span class="kw">use </span><span class="kw">crate</span>::config::{Xtask, XtaskPlatformMacosSearchPath};
+</span><span class="kw">use </span><span class="kw">crate</span>::config::{Config, XtaskPlatformMacosSearchPath};
 <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
 </span><span class="kw">use </span>std::path::PathBuf;
 
 <span class="attr">#[cfg(target_os = <span class="string">&quot;macos&quot;</span>)]
-</span><span class="kw">pub fn </span>detect_macos_clang_paths(workspace: <span class="kw-2">&amp;</span>Workspace) -&gt; BoxResult&lt;<span class="kw">impl </span>Iterator&lt;Item = PathBuf&gt;&gt; {
-    <span class="kw">let </span>version = workspace.clang.version.as_str();
+</span><span class="kw">pub fn </span>detect_macos_clang_paths(config: <span class="kw-2">&amp;</span>Config) -&gt; BoxResult&lt;<span class="kw">impl </span>Iterator&lt;Item = PathBuf&gt;&gt; {
+    <span class="kw">let </span>version = config.xtask.clang.version.as_str();
     <span class="kw">let </span>major_version = version.split(<span class="string">&#39;.&#39;</span>).next().unwrap_or(version);
     <span class="kw">let </span><span class="kw-2">mut </span>paths = <span class="macro">vec!</span>[];
-    <span class="kw">for </span>entry <span class="kw">in </span><span class="kw-2">&amp;</span>workspace.clang.platform.macos.search_paths {
+    <span class="kw">for </span>entry <span class="kw">in </span><span class="kw-2">&amp;</span>config.xtask.clang.platform.macos.search_paths {
         <span class="kw">match </span>entry {
-            WorkspacePlatformMacosSearchPath::Homebrew =&gt; {
+            XtaskPlatformMacosSearchPath::Homebrew =&gt; {
                 <span class="kw">let </span>formula = <span class="macro">format!</span>(<span class="string">&quot;llvm@{major_version}&quot;</span>);
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(prefix) = detect_homebrew_prefix(<span class="kw-2">&amp;</span>formula)<span class="question-mark">? </span>{
                     <span class="kw">if let </span><span class="prelude-val">Some</span>(parent) = prefix.parent() {

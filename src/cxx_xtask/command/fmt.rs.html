@@ -41,6 +41,9 @@
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
 <a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{config::Config, BoxResult};
 <span class="kw">use </span>std::{
     ffi::OsString,
@@ -50,7 +53,7 @@
 <span class="kw">pub fn </span>fmt(
     config: <span class="kw-2">&amp;</span>Config,
     args: <span class="kw-2">&amp;mut </span>pico_args::Arguments,
-    cargo_args: Vec&lt;OsString&gt;,
+    tool_args: Vec&lt;OsString&gt;,
 ) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-format
@@ -73,13 +76,16 @@ FLAGS:
     <span class="kw">let </span>toolchain = <span class="kw">crate</span>::config::rust::toolchain::nightly(config);
 
     <span class="kw">crate</span>::validation::validate_rust_toolchain(<span class="kw-2">&amp;</span>toolchain)<span class="question-mark">?</span>;
-    <span class="kw">crate</span>::validation::validate_cargo_component(config, <span class="string">&quot;cargo-fmt&quot;</span>)<span class="question-mark">?</span>;
+
+    <span class="kw">let </span>env_vars = <span class="kw">crate</span>::validation::validate_tool(config, <span class="string">&quot;cargo-fmt&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cargo&quot;</span>);
     cmd.current_dir(<span class="kw">crate</span>::cargo::project_root()<span class="question-mark">?</span>);
     cmd.args([<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;+{toolchain}&quot;</span>), <span class="string">&quot;fmt&quot;</span>, <span class="string">&quot;--all&quot;</span>]);
-    cmd.args(cargo_args);
-
+    cmd.args(tool_args);
+    <span class="kw">for </span>(key, value) <span class="kw">in </span>env_vars {
+        cmd.env(key, value);
+    }
     <span class="kw">let </span>status = cmd.status()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(status))

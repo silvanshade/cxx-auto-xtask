@@ -58,10 +58,22 @@
 <a href="#58" id="58">58</a>
 <a href="#59" id="59">59</a>
 <a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>rust_toolchain;
 <span class="kw">mod </span>xtask;
 
-<span class="kw">use </span>std::path::Path;
+<span class="kw">use </span>std::path::{Path, PathBuf};
 
 <span class="kw">pub use </span>rust_toolchain::{RustToolchain, RustToolchainToolchain};
 <span class="kw">pub use </span>xtask::{
@@ -78,19 +90,25 @@
 <span class="kw">use </span><span class="kw">crate</span>::BoxResult;
 
 <span class="kw">pub struct </span>Config {
-    <span class="kw">pub </span>rust_toolchain: RustToolchain,
+    <span class="kw">pub </span>project_root_dir: PathBuf,
+    <span class="kw">pub </span>xtask_dir: PathBuf,
+    <span class="kw">pub </span>xtask_bin_dir: PathBuf,
     <span class="kw">pub </span>xtask: Xtask,
+    <span class="kw">pub </span>rust_toolchain: RustToolchain,
 }
 
 <span class="kw">impl </span>Config {
-    <span class="kw">pub fn </span>load(project_root: <span class="kw-2">&amp;</span>Path) -&gt; BoxResult&lt;<span class="self">Self</span>&gt; {
+    <span class="kw">pub fn </span>load(project_root_dir: <span class="kw-2">&amp;</span>Path) -&gt; BoxResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">crate</span>::install::create_xtask_bin_dir(project_root_dir)<span class="question-mark">?</span>;
+        <span class="kw">let </span>xtask_dir = project_root_dir.join(<span class="string">&quot;.xtask&quot;</span>);
+        <span class="kw">let </span>xtask_bin_dir = xtask_dir.join(<span class="string">&quot;bin&quot;</span>);
         <span class="kw">let </span>rust_toolchain: RustToolchain = {
-            <span class="kw">let </span>path = project_root.join(<span class="string">&quot;rust-toolchain.toml&quot;</span>);
+            <span class="kw">let </span>path = project_root_dir.join(<span class="string">&quot;rust-toolchain.toml&quot;</span>);
             <span class="kw">let </span>data = std::fs::read_to_string(path)<span class="question-mark">?</span>;
             toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
         </span>};
         <span class="kw">let </span>xtask: Xtask = {
-            <span class="kw">let </span>path = project_root.join(<span class="string">&quot;xtask.toml&quot;</span>);
+            <span class="kw">let </span>path = project_root_dir.join(<span class="string">&quot;xtask.toml&quot;</span>);
             <span class="kw">let </span>data = std::fs::read_to_string(path)<span class="question-mark">?</span>;
             toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
         </span>};
@@ -101,7 +119,13 @@
             )
             .into());
         }
-        <span class="prelude-val">Ok</span>(Config { rust_toolchain, xtask })
+        <span class="prelude-val">Ok</span>(Config {
+            project_root_dir: project_root_dir.to_path_buf(),
+            xtask_dir,
+            xtask_bin_dir,
+            xtask,
+            rust_toolchain,
+        })
     }
 }
 

@@ -87,7 +87,7 @@
             message.push(<span class="string">&#39; &#39;</span>);
             message.push_str(str.to_string_lossy().borrow());
         }
-        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;error: unrecognized arguments `{message}`&quot;</span>).into())
+        <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unrecognized arguments `{message}`&quot;</span>).into())
     } <span class="kw">else </span>{
         <span class="prelude-val">Ok</span>(())
     }

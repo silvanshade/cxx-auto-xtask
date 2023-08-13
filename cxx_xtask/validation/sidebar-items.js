@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["validate_cargo_component","validate_rust_toolchain","validate_tool"]};
+window.SIDEBAR_ITEMS = {"fn":["validate_rust_toolchain","validate_tool"]};

@@ -46,7 +46,7 @@
 <span class="kw">pub fn </span>test(
     _config: <span class="kw-2">&amp;</span>Config,
     args: <span class="kw-2">&amp;mut </span>pico_args::Arguments,
-    cargo_args: Vec&lt;OsString&gt;,
+    tool_args: Vec&lt;OsString&gt;,
 ) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-test
@@ -70,7 +70,7 @@ FLAGS:
     cmd.current_dir(<span class="kw">crate</span>::cargo::project_root()<span class="question-mark">?</span>);
     cmd.args([<span class="string">&quot;test&quot;</span>]);
     cmd.args([<span class="string">&quot;--package&quot;</span>, <span class="string">&quot;cxx-auto&quot;</span>]);
-    cmd.args(cargo_args);
+    cmd.args(tool_args);
 
     <span class="kw">let </span>status = cmd.status()<span class="question-mark">?</span>;
 

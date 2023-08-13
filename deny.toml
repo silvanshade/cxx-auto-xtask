@@ -1,0 +1,24 @@
+all-features = true
+
+[advisories]
+db-path = "~/.cargo/advisory-db"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+vulnerability = "deny"
+unmaintained = "warn"
+yanked = "warn"
+notice = "warn"
+
+[licenses]
+default = "deny"
+copyleft = "warn"
+allow-osi-fsf-free = "both"
+allow = ["Unicode-DFS-2016", "LicenseRef-ring-BoringSSL"]
+
+[[licenses.clarify]]
+name = "ring"
+expression = "LicenseRef-ring-BoringSSL"
+license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
+
+[licenses.private]
+ignore = false
+registries = []

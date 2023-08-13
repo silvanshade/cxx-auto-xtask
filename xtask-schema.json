@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/silvanshade/cxx-xtask/main/xtask-schema.json",
+  "type": "object",
+  "required": ["clang", "rust"],
+  "additionalProperties": false,
+  "properties": {
+    "clang": {
+      "type": "object",
+      "required": ["matchers", "platform", "suffix", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "matchers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "platform": {
+          "type": "object",
+          "required": ["macos"],
+          "additionalProperties": false,
+          "properties": {
+            "macos": {
+              "type": "object",
+              "required": ["searchPaths"],
+              "additionalProperties": false,
+              "properties": {
+                "searchPaths": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["kind"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": ["homebrew"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "rust": {
+      "type": "object",
+      "required": ["components", "toolchain"],
+      "additionalProperties": false,
+      "properties": {
+        "components": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/rust.component"
+          }
+        },
+        "toolchain": {
+          "type": "object",
+          "required": ["nightly"],
+          "additionalProperties": false,
+          "properties": {
+            "nightly": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rust.component": {
+      "type": "object",
+      "required": ["toolchain"],
+      "additionalProperties": false,
+      "properties": {
+        "toolchain": {
+          "type": "string",
+          "enum": ["stable", "nightly"]
+        }
+      }
+    }
+  }
+}

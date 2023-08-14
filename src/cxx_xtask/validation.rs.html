@@ -264,9 +264,6 @@
 <a href="#264" id="264">264</a>
 <a href="#265" id="265">265</a>
 <a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{config::Config, BoxError, BoxResult};
 <span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>std::{
@@ -357,9 +354,6 @@
                     )
                     .into());
                 }
-            }
-            <span class="kw">if </span>matcher.is_match(<span class="kw-2">&amp;</span>haystack) {
-                <span class="prelude-val">Ok</span>(env_vars)
             } <span class="kw">else </span>{
                 <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;`{tool}` failed validation; ensure you are using the official clang toolchain&quot;</span>).into())
             }

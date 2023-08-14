@@ -16,13 +16,13 @@
 </pre></div><pre class="rust"><code><span class="attr">#![deny(clippy::all)]
 #![deny(unsafe_code)]
 
-</span><span class="kw">pub mod </span>cargo;
-<span class="kw">pub mod </span>command;
+</span><span class="kw">pub mod </span>command;
 <span class="kw">pub mod </span>config;
 <span class="kw">pub mod </span>detection;
 <span class="kw">pub mod </span>handler;
 <span class="kw">pub mod </span>install;
 <span class="kw">pub mod </span>validation;
+<span class="kw">pub mod </span>workspace;
 
 <span class="kw">pub type </span>BoxError = Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">&#39;static</span>&gt;;
 <span class="kw">pub type </span>BoxResult&lt;T&gt; = <span class="prelude-ty">Result</span>&lt;T, BoxError&gt;;

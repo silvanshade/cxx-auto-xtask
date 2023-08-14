@@ -52,24 +52,13 @@
 <a href="#52" id="52">52</a>
 <a href="#53" id="53">53</a>
 <a href="#54" id="54">54</a>
-<a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{config::Config, BoxError, BoxResult};
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{command::Context, BoxError, BoxResult};
 <span class="kw">use </span>std::{
     collections::BTreeMap,
-    ffi::OsString,
     process::{Command, ExitStatus},
 };
 
-<span class="kw">pub fn </span>edit(
-    config: <span class="kw-2">&amp;</span>Config,
-    args: <span class="kw-2">&amp;mut </span>pico_args::Arguments,
-    tool_args: Vec&lt;OsString&gt;,
-) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+<span class="kw">pub fn </span>edit(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;, editor: String, editor_args: Vec&lt;String&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-edit
 
@@ -82,29 +71,28 @@ FLAGS:
 &quot;#
     </span>.trim();
 
-    <span class="kw">if </span><span class="kw">crate</span>::handler::help(args, help)<span class="question-mark">? </span>{
+    <span class="kw">if </span><span class="kw">crate</span>::handler::help(context.args, help)<span class="question-mark">? </span>{
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     }
 
-    <span class="kw">crate</span>::handler::unused(args)<span class="question-mark">?</span>;
+    <span class="kw">crate</span>::handler::unused(context.args)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>env_vars = BTreeMap::new();
 
-    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(config, <span class="string">&quot;clang++&quot;</span>)<span class="question-mark">?</span>);
-    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(config, <span class="string">&quot;clangd&quot;</span>)<span class="question-mark">?</span>);
+    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;clang++&quot;</span>)<span class="question-mark">?</span>);
+    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;clangd&quot;</span>)<span class="question-mark">?</span>);
 
-    <span class="kw">let </span>toolchain = <span class="kw">crate</span>::config::rust::toolchain::nightly(config);
+    <span class="kw">let </span>toolchain = <span class="kw">crate</span>::config::rust::toolchain::nightly(context.config);
 
     <span class="kw">crate</span>::validation::validate_rust_toolchain(<span class="kw-2">&amp;</span>toolchain)<span class="question-mark">?</span>;
 
-    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(config, <span class="string">&quot;cargo-clippy&quot;</span>)<span class="question-mark">?</span>);
-    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(config, <span class="string">&quot;cargo-fmt&quot;</span>)<span class="question-mark">?</span>);
+    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-clippy&quot;</span>)<span class="question-mark">?</span>);
+    env_vars.extend(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-fmt&quot;</span>)<span class="question-mark">?</span>);
 
-    <span class="kw">let </span>(editor, editor_args) = <span class="kw">crate</span>::detection::detect_editor(args)<span class="question-mark">?</span>;
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span>editor);
-    cmd.current_dir(<span class="kw">crate</span>::cargo::project_root()<span class="question-mark">?</span>);
+    cmd.current_dir(<span class="kw">crate</span>::workspace::project_root()<span class="question-mark">?</span>);
     cmd.args(editor_args);
-    cmd.args(tool_args);
+    cmd.args(context.tool_args);
     <span class="kw">for </span>(key, value) <span class="kw">in </span>env_vars {
         cmd.env(key, value);
     }

@@ -257,6 +257,16 @@
 <a href="#257" id="257">257</a>
 <a href="#258" id="258">258</a>
 <a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{config::Config, BoxError, BoxResult};
 <span class="kw">use </span>regex::Regex;
 <span class="kw">use </span>std::{
@@ -303,6 +313,12 @@
         },
         <span class="string">&quot;cargo-valgrind&quot; </span>=&gt; {
             validate_cargo_tool(tool)<span class="question-mark">?</span>;
+        },
+        <span class="string">&quot;cmake&quot; </span>=&gt; {
+            validate_other_tool(tool, <span class="kw-2">&amp;</span>env_vars)<span class="question-mark">?</span>;
+        },
+        <span class="string">&quot;ninja&quot; </span>=&gt; {
+            validate_other_tool(tool, <span class="kw-2">&amp;</span>env_vars)<span class="question-mark">?</span>;
         },
         <span class="kw">_ </span>=&gt; {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unrecognized tool: `{tool}`&quot;</span>).into());
@@ -432,7 +448,11 @@
 
 <span class="kw">fn </span>validate_other_tool(tool: <span class="kw-2">&amp;</span>str, env_vars: <span class="kw-2">&amp;</span>BTreeMap&lt;OsString, OsString&gt;) -&gt; BoxResult&lt;BTreeMap&lt;OsString, OsString&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(tool);
-    cmd.args([<span class="string">&quot;--help&quot;</span>]);
+    <span class="kw">match </span>tool {
+        <span class="string">&quot;ninja&quot; </span>=&gt; cmd.args([<span class="string">&quot;--version&quot;</span>]),
+        <span class="kw">_ </span>=&gt; cmd.args([<span class="string">&quot;--help&quot;</span>]),
+    };
+    cmd.stderr(std::process::Stdio::null());
     cmd.stdout(std::process::Stdio::null());
     <span class="kw">for </span>(key, value) <span class="kw">in </span>env_vars.iter() {
         cmd.env(key, value);

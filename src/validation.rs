@@ -1,31 +1,44 @@
 use crate::{config::Config, BoxError, BoxResult};
 use regex::Regex;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
     ffi::OsString,
     process::Command,
 };
 
-pub fn validate_tool(config: &Config, tool: &str) -> BoxResult<BTreeMap<OsString, OsString>> {
-    let mut env_vars = BTreeMap::default();
+#[derive(Debug, Default)]
+pub struct Validation {
+    pub tools: HashMap<String, String>,
+    pub env_vars: BTreeMap<OsString, OsString>,
+}
+
+impl Validation {
+    pub fn combine(&mut self, other: Validation) {
+        self.tools.extend(other.tools);
+        self.env_vars.extend(other.env_vars);
+    }
+}
+
+pub fn validate_tool(config: &Config, tool: &str) -> BoxResult<Validation> {
+    let mut validation = Validation::default();
     match tool {
         "clang" => {
-            env_vars.extend(validate_clang_tool(config, tool)?);
+            validation.combine(validate_clang_tool(config, tool)?);
         },
         "clang++" => {
-            env_vars.extend(validate_clang_tool(config, tool)?);
+            validation.combine(validate_clang_tool(config, tool)?);
         },
         "clangd" => {
-            env_vars.extend(validate_clang_tool(config, tool)?);
+            validation.combine(validate_clang_tool(config, tool)?);
         },
         "clang-format" => {
-            env_vars.extend(validate_clang_tool(config, tool)?);
+            validation.combine(validate_clang_tool(config, tool)?);
             validate_python3()?;
             validate_xtask_bin(config, "run-clang-format.py", true)?;
         },
         "clang-tidy" => {
-            env_vars.extend(validate_clang_tool(config, tool)?);
-            env_vars.extend(validate_other_tool("run-clang-tidy", &env_vars)?);
+            validation.combine(validate_clang_tool(config, tool)?);
+            validation.combine(validate_clang_tool(config, "run-clang-tidy")?);
         },
         "cargo-clippy" => {
             validate_cargo_component(config, tool)?;
@@ -46,96 +59,151 @@ pub fn validate_tool(config: &Config, tool: &str) -> BoxResult<BTreeMap<OsString
             validate_cargo_tool(tool)?;
         },
         "cmake" => {
-            validate_other_tool(tool, &env_vars)?;
+            validate_other_tool(tool, &validation.env_vars)?;
         },
         "ninja" => {
-            validate_other_tool(tool, &env_vars)?;
+            validate_other_tool(tool, &validation.env_vars)?;
         },
         _ => {
             return Err(format!("unrecognized tool: `{tool}`").into());
         },
     }
-    Ok(env_vars)
+    Ok(validation)
 }
 
-fn validate_clang_tool(config: &Config, tool: &str) -> BoxResult<BTreeMap<OsString, OsString>> {
+fn validate_clang_tool(config: &Config, tool: &str) -> BoxResult<Validation> {
     fn check_tool(
         config: &Config,
-        matcher: &Regex,
+        matcher: Option<&Regex>,
         tool: &str,
+        tool_elaborated: Option<String>,
         env_vars: BTreeMap<OsString, OsString>,
-    ) -> BoxResult<BTreeMap<OsString, OsString>> {
+    ) -> BoxResult<Validation> {
+        let tool_elaborated = tool_elaborated.as_deref().unwrap_or(tool);
         // check `tool` with no suffix
-        let mut cmd = Command::new(tool);
-        cmd.arg("--version");
+        let mut cmd = Command::new(tool_elaborated);
+        if matcher.is_some() {
+            cmd.arg("--version");
+        } else {
+            cmd.arg("--help");
+        }
         for (key, value) in env_vars.iter() {
             cmd.env(key, value);
         }
         let output = cmd.output()?;
         if output.status.success() {
-            let haystack = String::from_utf8(output.stdout)?;
-            if let Some(version) = matcher
-                .captures(&haystack)
-                .and_then(|captures| captures.get(1).map(|m| m.as_str()))
-            {
-                if version.starts_with(&config.xtask.clang.version) {
-                    return Ok(env_vars);
-                } else {
-                    return Err(format!(
-                        "`{tool}` failed validation; expected version compatible with `{version}` but found `{actual}`",
-                        version = config.xtask.clang.version,
-                        actual = version,
-                    )
-                    .into());
-                }
+            let mut validation = Validation {
+                env_vars,
+                ..Default::default()
+            };
+            if tool_elaborated != tool {
+                let tool = String::from(tool);
+                let tool_elaborated = String::from(tool_elaborated);
+                validation.tools.insert(tool, tool_elaborated);
             }
-            if matcher.is_match(&haystack) {
-                Ok(env_vars)
+            if let Some(matcher) = matcher {
+                let haystack = String::from_utf8(output.stdout)?;
+                if let Some(version) = matcher
+                    .captures(&haystack)
+                    .and_then(|captures| captures.get(1).map(|m| m.as_str()))
+                {
+                    if version.starts_with(&config.xtask.clang.version) {
+                        return Ok(validation);
+                    } else {
+                        let message = format!(
+                            "`{tool}` failed validation; expected version compatible with `{version}` but found `{actual}`",
+                            version = config.xtask.clang.version,
+                            actual = version,
+                        );
+                        println!("{message}");
+                        return Err(message.into());
+                    }
+                } else {
+                    let message =
+                        format!("`{tool}` failed validation; ensure you are using the official clang toolchain");
+                    println!("{message}");
+                    Err(message.into())
+                }
             } else {
-                Err(format!("`{tool}` failed validation; ensure you are using the official clang toolchain").into())
+                return Ok(validation);
             }
         } else {
-            Err(format!("`{tool}` failed with non-zero exit code").into())
+            let message = format!("`{tool}` failed with non-zero exit code");
+            println!("{message}");
+            Err(message.into())
         }
     }
 
-    if let Some(matcher) = config.xtask.clang.matchers.get(tool) {
-        let matcher = regex::Regex::new(matcher)?;
-        return
-            // check `tool` with no suffix
-            check_tool(config, &matcher, tool, BTreeMap::default())
+    // if let Some(matcher) = config.xtask.clang.matchers.get(tool) {
+    // let matcher = regex::Regex::new(matcher)?;
 
-            // check `tool` with suffix
-            .or_else(|_err| {
-                let tool = &format!("{}-{}", tool, config.xtask.clang.suffix);
-                let env = BTreeMap::default();
-                check_tool(config, &matcher, tool, env)
-            })
+    let matcher = config
+        .xtask
+        .clang
+        .matchers
+        .get(tool)
+        .map(|matcher| regex::Regex::new(matcher))
+        .transpose()?;
+    let matcher = matcher.as_ref();
 
-            // check `tool` in search paths
-            .or_else(|_err| {
-                #[allow(unused_mut)]
-                let mut paths = if let Some(path) = std::env::var_os("PATH") {
-                    std::env::split_paths(&path).collect::<BTreeSet<_>>()
-                } else {
-                    BTreeSet::default()
-                };
-
-                // on macOS, add the homebrew install location to the PATH for a final test
-                #[cfg(target_os = "macos")]
-                paths.extend(crate::detection::detect_macos_clang_paths(config)?);
-
-                std::env::join_paths(paths)
-                    .map_err(Into::into)
-                    .and_then(|path| {
-                        let env = BTreeMap::from_iter([("PATH".into(), path)]);
-                        check_tool(config, &matcher, tool, env)
-                    })
-            });
-        // check if any of the above succeeded
+    // check `tool` with suffix
+    {
+        let tool_elaborated = Some(format!("{}{}", tool, config.xtask.clang.suffix));
+        let env_vars = BTreeMap::default();
+        if let Ok(validation) = check_tool(config, matcher, tool, tool_elaborated, env_vars) {
+            return Ok(validation);
+        }
     }
 
-    Err(format!("could not find matcher for tool: `{tool}`").into())
+    // check `tool` with suffix in search paths
+    {
+        #[allow(unused_mut)]
+        let mut paths = if let Some(path) = std::env::var_os("PATH") {
+            std::env::split_paths(&path).collect::<BTreeSet<_>>()
+        } else {
+            BTreeSet::default()
+        };
+        // on macOS, add the homebrew install location to the PATH for a final test
+        #[cfg(target_os = "macos")]
+        paths.extend(crate::detection::detect_macos_clang_paths(config)?);
+        let path = std::env::join_paths(paths)?;
+        let tool_elaborated = Some(format!("{}{}", tool, config.xtask.clang.suffix));
+        let env_vars = BTreeMap::from_iter([("PATH".into(), path)]);
+        if let Ok(validation) = check_tool(config, matcher, tool, tool_elaborated, env_vars) {
+            return Ok(validation);
+        }
+    }
+
+    // check `tool` with no suffix
+    {
+        let tool_elaborated = None;
+        let env_vars = BTreeMap::default();
+        if let Ok(validation) = check_tool(config, matcher, tool, tool_elaborated, env_vars) {
+            return Ok(validation);
+        }
+    }
+
+    // check `tool` with no suffix in search paths
+    {
+        #[allow(unused_mut)]
+        let mut paths = if let Some(path) = std::env::var_os("PATH") {
+            std::env::split_paths(&path).collect::<BTreeSet<_>>()
+        } else {
+            BTreeSet::default()
+        };
+        // on macOS, add the homebrew install location to the PATH for a final test
+        #[cfg(target_os = "macos")]
+        paths.extend(crate::detection::detect_macos_clang_paths(config)?);
+        let path = std::env::join_paths(paths)?;
+        let tool_elaborated = None;
+        let env_vars = BTreeMap::from_iter([("PATH".into(), path)]);
+        if let Ok(validation) = check_tool(config, matcher, tool, tool_elaborated, env_vars) {
+            return Ok(validation);
+        }
+    }
+    // }
+
+    Err(format!("could not validate tool: `{tool}`").into())
 }
 
 fn validate_cargo_component(config: &Config, tool: &str) -> BoxResult<()> {
@@ -177,7 +245,7 @@ fn validate_cargo_tool(tool: &str) -> BoxResult<()> {
     Ok(())
 }
 
-fn validate_other_tool(tool: &str, env_vars: &BTreeMap<OsString, OsString>) -> BoxResult<BTreeMap<OsString, OsString>> {
+fn validate_other_tool(tool: &str, env_vars: &BTreeMap<OsString, OsString>) -> BoxResult<Validation> {
     let mut cmd = Command::new(tool);
     match tool {
         "ninja" => cmd.args(["--version"]),
@@ -198,7 +266,7 @@ fn validate_other_tool(tool: &str, env_vars: &BTreeMap<OsString, OsString>) -> B
     if !status.success() {
         return Err(format!("`{tool}` failed with non-zero exit code").into());
     }
-    Ok(BTreeMap::default())
+    Ok(Validation::default())
 }
 
 fn validate_python3() -> BoxResult<()> {

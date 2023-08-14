@@ -24,7 +24,7 @@ FLAGS:
 
     crate::validation::validate_rust_toolchain(&toolchain)?;
 
-    let env_vars = crate::validation::validate_tool(context.config, "cargo-udeps")?;
+    let validation = crate::validation::validate_tool(context.config, "cargo-udeps")?;
 
     let mut cmd = Command::new("cargo");
     cmd.current_dir(crate::workspace::project_root()?);
@@ -32,7 +32,7 @@ FLAGS:
     cmd.args(["--package", "xtask"]);
     cmd.args(["--package", "cxx-auto"]);
     cmd.args(context.tool_args);
-    for (key, value) in env_vars {
+    for (key, value) in validation.env_vars {
         cmd.env(key, value);
     }
     let status = cmd.status()?;

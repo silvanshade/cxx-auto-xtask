@@ -1,8 +1,5 @@
 use crate::{command::Context, BoxError, BoxResult};
-use std::{
-    collections::BTreeMap,
-    process::{Command, ExitStatus},
-};
+use std::process::{Command, ExitStatus};
 
 pub fn edit(context: Context<'_>, editor: String, editor_args: Vec<String>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
@@ -23,23 +20,23 @@ FLAGS:
 
     crate::handler::unused(context.args)?;
 
-    let mut env_vars = BTreeMap::new();
+    let mut validation = crate::validation::Validation::default();
 
-    env_vars.extend(crate::validation::validate_tool(context.config, "clang++")?);
-    env_vars.extend(crate::validation::validate_tool(context.config, "clangd")?);
+    validation.combine(crate::validation::validate_tool(context.config, "clang++")?);
+    validation.combine(crate::validation::validate_tool(context.config, "clangd")?);
 
     let toolchain = crate::config::rust::toolchain::nightly(context.config);
 
     crate::validation::validate_rust_toolchain(&toolchain)?;
 
-    env_vars.extend(crate::validation::validate_tool(context.config, "cargo-clippy")?);
-    env_vars.extend(crate::validation::validate_tool(context.config, "cargo-fmt")?);
+    validation.combine(crate::validation::validate_tool(context.config, "cargo-clippy")?);
+    validation.combine(crate::validation::validate_tool(context.config, "cargo-fmt")?);
 
     let mut cmd = Command::new(&editor);
     cmd.current_dir(crate::workspace::project_root()?);
     cmd.args(editor_args);
     cmd.args(context.tool_args);
-    for (key, value) in env_vars {
+    for (key, value) in validation.env_vars {
         cmd.env(key, value);
     }
     let status = cmd.status().map_err(|err| -> BoxError {

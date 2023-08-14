@@ -1,5 +1,8 @@
 use crate::{command::Context, BoxResult};
-use std::process::{Command, ExitStatus};
+use std::{
+    ffi::OsString,
+    process::{Command, ExitStatus},
+};
 
 pub fn clang(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
@@ -30,15 +33,22 @@ SUBCOMMANDS:
 
     crate::handler::unused(context.args)?;
 
-    let env_vars = crate::validation::validate_tool(context.config, &format!("clang-{clang_subcommand}"))?;
+    let validation = crate::validation::validate_tool(context.config, &format!("clang-{clang_subcommand}"))?;
 
     let status = match &*clang_subcommand {
         "format" => {
             let tool = context.config.xtask_bin_dir.join("run-clang-format.py");
             let mut cmd = Command::new("python3");
             cmd.args([tool.as_os_str()]);
+            if !context.tool_args.contains(&OsString::from("--clang-format-executable")) {
+                let clang_format_tool = validation
+                    .tools
+                    .get("clang-format")
+                    .ok_or_else(|| "`clang-format` not found")?;
+                cmd.args(["--clang-format-executable", clang_format_tool]);
+            }
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?
@@ -52,9 +62,20 @@ SUBCOMMANDS:
                 let result = crate::command::cmake(context);
                 crate::handler::subcommand_result("cmake", result);
             }
-            let mut cmd = Command::new("run-clang-tidy");
+            let run_clang_tidy_tool = validation
+                .tools
+                .get("run-clang-tidy")
+                .ok_or_else(|| "`run-clang-tidy` not found")?;
+            let mut cmd = Command::new(run_clang_tidy_tool);
+            if !context.tool_args.contains(&OsString::from("-clang-tidy-binary")) {
+                let clang_tidy_tool = validation
+                    .tools
+                    .get("clang-tidy")
+                    .ok_or_else(|| "`clang-tidy` not found")?;
+                cmd.args(["-clang-tidy-binary", clang_tidy_tool]);
+            }
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?

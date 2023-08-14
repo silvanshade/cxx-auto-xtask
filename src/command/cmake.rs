@@ -1,8 +1,5 @@
 use crate::{command::Context, BoxResult};
-use std::{
-    collections::BTreeMap,
-    process::{Command, ExitStatus},
-};
+use std::process::{Command, ExitStatus};
 
 pub fn cmake(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
@@ -28,9 +25,9 @@ SUBCOMMANDS:
 
     crate::handler::unused(context.args)?;
 
-    let mut env_vars = BTreeMap::default();
-    env_vars.extend(crate::validation::validate_tool(context.config, &format!("cmake"))?);
-    env_vars.extend(crate::validation::validate_tool(context.config, &format!("ninja"))?);
+    let mut validation = crate::validation::Validation::default();
+    validation.combine(crate::validation::validate_tool(context.config, &format!("cmake"))?);
+    validation.combine(crate::validation::validate_tool(context.config, &format!("ninja"))?);
 
     let status = match &*cmake_subcommand {
         "build" => {
@@ -39,7 +36,7 @@ SUBCOMMANDS:
             cmd.args(["-S", "."]);
             cmd.args(["-B", "build"]);
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.current_dir(&context.config.project_root_dir);

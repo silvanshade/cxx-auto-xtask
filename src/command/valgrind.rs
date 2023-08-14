@@ -26,7 +26,7 @@ SUBCOMMANDS:
 
     crate::handler::unused(context.args)?;
 
-    let env_vars = crate::validation::validate_tool(context.config, "cargo-valgrind")?;
+    let validation = crate::validation::validate_tool(context.config, "cargo-valgrind")?;
 
     let status = match &*valgrind_subcommand {
         "run" => {
@@ -36,7 +36,7 @@ SUBCOMMANDS:
             cmd.args([valgrind_subcommand]);
             cmd.args(["--features", "valgrind"]);
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?
@@ -48,7 +48,7 @@ SUBCOMMANDS:
             cmd.args([valgrind_subcommand]);
             cmd.args(["--features", "valgrind"]);
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?

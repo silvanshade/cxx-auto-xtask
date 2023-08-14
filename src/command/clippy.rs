@@ -24,7 +24,7 @@ FLAGS:
 
     crate::validation::validate_rust_toolchain(&toolchain)?;
 
-    let env_vars = crate::validation::validate_tool(context.config, "cargo-clippy")?;
+    let validation = crate::validation::validate_tool(context.config, "cargo-clippy")?;
 
     let mut cmd = Command::new("cargo");
     cmd.current_dir(crate::workspace::project_root()?);
@@ -33,7 +33,7 @@ FLAGS:
     cmd.args(["--package", "cxx-auto"]);
     cmd.args(context.tool_args);
     cmd.args(["--", "-D", "warnings"]);
-    for (key, value) in env_vars {
+    for (key, value) in validation.env_vars {
         cmd.env(key, value);
     }
     let status = cmd.status()?;

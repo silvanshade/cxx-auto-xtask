@@ -30,7 +30,7 @@ SUBCOMMANDS:
 
     crate::validation::validate_rust_toolchain(&toolchain)?;
 
-    let env_vars = crate::validation::validate_tool(context.config, "cargo-miri")?;
+    let validation = crate::validation::validate_tool(context.config, "cargo-miri")?;
 
     let status = match &*miri_subcommand {
         "run" => {
@@ -39,7 +39,7 @@ SUBCOMMANDS:
             cmd.args([&format!("+{toolchain}"), "miri"]);
             cmd.args([miri_subcommand]);
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?
@@ -50,7 +50,7 @@ SUBCOMMANDS:
             cmd.args([&format!("+{toolchain}"), "miri"]);
             cmd.args([miri_subcommand]);
             cmd.args(context.tool_args);
-            for (key, value) in env_vars {
+            for (key, value) in validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?

@@ -45,6 +45,12 @@ pub fn validate_tool(config: &Config, tool: &str) -> BoxResult<BTreeMap<OsString
         "cargo-valgrind" => {
             validate_cargo_tool(tool)?;
         },
+        "cmake" => {
+            validate_other_tool(tool, &env_vars)?;
+        },
+        "ninja" => {
+            validate_other_tool(tool, &env_vars)?;
+        },
         _ => {
             return Err(format!("unrecognized tool: `{tool}`").into());
         },
@@ -173,7 +179,11 @@ fn validate_cargo_tool(tool: &str) -> BoxResult<()> {
 
 fn validate_other_tool(tool: &str, env_vars: &BTreeMap<OsString, OsString>) -> BoxResult<BTreeMap<OsString, OsString>> {
     let mut cmd = Command::new(tool);
-    cmd.args(["--help"]);
+    match tool {
+        "ninja" => cmd.args(["--version"]),
+        _ => cmd.args(["--help"]),
+    };
+    cmd.stderr(std::process::Stdio::null());
     cmd.stdout(std::process::Stdio::null());
     for (key, value) in env_vars.iter() {
         cmd.env(key, value);

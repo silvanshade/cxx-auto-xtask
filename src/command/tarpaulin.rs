@@ -1,14 +1,7 @@
-use crate::{config::Config, BoxResult};
-use std::{
-    ffi::OsString,
-    process::{Command, ExitStatus},
-};
+use crate::{command::Context, BoxResult};
+use std::process::{Command, ExitStatus};
 
-pub fn tarpaulin(
-    config: &Config,
-    args: &mut pico_args::Arguments,
-    tool_args: Vec<OsString>,
-) -> BoxResult<Option<ExitStatus>> {
+pub fn tarpaulin(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-tarpaulin
 
@@ -21,25 +14,25 @@ FLAGS:
 "#
     .trim();
 
-    if crate::handler::help(args, help)? {
+    if crate::handler::help(context.args, help)? {
         return Ok(None);
     }
 
-    crate::handler::unused(args)?;
+    crate::handler::unused(context.args)?;
 
-    let toolchain = crate::config::rust::toolchain::nightly(config);
+    let toolchain = crate::config::rust::toolchain::nightly(context.config);
 
     crate::validation::validate_rust_toolchain(&toolchain)?;
 
-    let env_vars = crate::validation::validate_tool(config, "cargo-tarpaulin")?;
+    let env_vars = crate::validation::validate_tool(context.config, "cargo-tarpaulin")?;
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(crate::cargo::project_root()?);
+    cmd.current_dir(crate::workspace::project_root()?);
     cmd.args([&format!("+{toolchain}"), "tarpaulin"]);
     cmd.args(["--packages", "cxx-auto"]);
     cmd.args(["--timeout", "120"]);
     cmd.args(["--out", "Xml"]);
-    cmd.args(tool_args);
+    cmd.args(context.tool_args);
     for (key, value) in env_vars {
         cmd.env(key, value);
     }

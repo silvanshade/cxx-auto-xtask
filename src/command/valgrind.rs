@@ -1,14 +1,7 @@
-use crate::{config::Config, BoxResult};
-use std::{
-    ffi::OsString,
-    process::{Command, ExitStatus},
-};
+use crate::{command::Context, BoxResult};
+use std::process::{Command, ExitStatus};
 
-pub fn valgrind(
-    config: &Config,
-    args: &mut pico_args::Arguments,
-    tool_args: Vec<OsString>,
-) -> BoxResult<Option<ExitStatus>> {
+pub fn valgrind(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-valgrind
 
@@ -25,24 +18,24 @@ SUBCOMMANDS:
 "#
     .trim();
 
-    if crate::handler::help(args, help)? {
+    if crate::handler::help(context.args, help)? {
         return Ok(None);
     }
 
-    let valgrind_subcommand: String = args.free_from_str()?;
+    let valgrind_subcommand: String = context.args.free_from_str()?;
 
-    crate::handler::unused(args)?;
+    crate::handler::unused(context.args)?;
 
-    let env_vars = crate::validation::validate_tool(config, "cargo-valgrind")?;
+    let env_vars = crate::validation::validate_tool(context.config, "cargo-valgrind")?;
 
     let status = match &*valgrind_subcommand {
         "run" => {
             let mut cmd = Command::new("cargo");
-            cmd.current_dir(crate::cargo::project_root()?);
+            cmd.current_dir(crate::workspace::project_root()?);
             cmd.args(["valgrind"]);
             cmd.args([valgrind_subcommand]);
             cmd.args(["--features", "valgrind"]);
-            cmd.args(tool_args);
+            cmd.args(context.tool_args);
             for (key, value) in env_vars {
                 cmd.env(key, value);
             }
@@ -50,11 +43,11 @@ SUBCOMMANDS:
         },
         "test" => {
             let mut cmd = Command::new("cargo");
-            cmd.current_dir(crate::cargo::project_root()?);
+            cmd.current_dir(crate::workspace::project_root()?);
             cmd.args(["valgrind"]);
             cmd.args([valgrind_subcommand]);
             cmd.args(["--features", "valgrind"]);
-            cmd.args(tool_args);
+            cmd.args(context.tool_args);
             for (key, value) in env_vars {
                 cmd.env(key, value);
             }

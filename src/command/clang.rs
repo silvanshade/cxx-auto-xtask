@@ -1,14 +1,7 @@
-use crate::{config::Config, BoxResult};
-use std::{
-    ffi::OsString,
-    process::{Command, ExitStatus},
-};
+use crate::{command::Context, BoxResult};
+use std::process::{Command, ExitStatus};
 
-pub fn clang(
-    config: &Config,
-    args: &mut pico_args::Arguments,
-    tool_args: Vec<OsString>,
-) -> BoxResult<Option<ExitStatus>> {
+pub fn clang(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-clang
 
@@ -27,30 +20,40 @@ SUBCOMMANDS:
 "#
     .trim();
 
-    if crate::handler::help(args, help)? {
+    if crate::handler::help(context.args, help)? {
         return Ok(None);
     }
 
-    let clang_subcommand: String = args.free_from_str()?;
+    let clang_subcommand: String = context
+        .subcommand
+        .ok_or_else(|| "expected a subcommand for `xtask clang`")?;
 
-    crate::handler::unused(args)?;
+    crate::handler::unused(context.args)?;
 
-    let env_vars = crate::validation::validate_tool(config, &format!("clang-{clang_subcommand}"))?;
+    let env_vars = crate::validation::validate_tool(context.config, &format!("clang-{clang_subcommand}"))?;
 
     let status = match &*clang_subcommand {
         "format" => {
-            let tool = config.xtask_bin_dir.join("run-clang-format.py");
+            let tool = context.config.xtask_bin_dir.join("run-clang-format.py");
             let mut cmd = Command::new("python3");
             cmd.args([tool.as_os_str()]);
-            cmd.args(tool_args);
+            cmd.args(context.tool_args);
             for (key, value) in env_vars {
                 cmd.env(key, value);
             }
             cmd.status()?
         },
         "tidy" => {
+            {
+                let config = context.config;
+                let mut args = pico_args::Arguments::from_vec(vec!["build".into()]);
+                let tool_args = vec![];
+                let context = Context::new(config, &mut args, tool_args);
+                let result = crate::command::cmake(context);
+                crate::handler::subcommand_result("cmake", result);
+            }
             let mut cmd = Command::new("run-clang-tidy");
-            cmd.args(tool_args);
+            cmd.args(context.tool_args);
             for (key, value) in env_vars {
                 cmd.env(key, value);
             }

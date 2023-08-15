@@ -50,10 +50,21 @@
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{command::Context, BoxResult};
 <span class="kw">use </span>std::process::{Command, ExitStatus};
 
-<span class="kw">pub fn </span>cmake(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+<span class="doccomment">/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - Tool validation fails (missing tools, incorrect versions, etc.)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
+</span><span class="kw">pub fn </span>cmake(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-cmake
 
@@ -78,26 +89,23 @@ SUBCOMMANDS:
     <span class="kw">crate</span>::handler::unused(context.args)<span class="question-mark">?</span>;
 
     <span class="kw">let </span><span class="kw-2">mut </span>validation = <span class="kw">crate</span>::validation::Validation::default();
-    validation.combine(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;cmake&quot;</span>))<span class="question-mark">?</span>);
-    validation.combine(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;ninja&quot;</span>))<span class="question-mark">?</span>);
+    validation.combine(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cmake&quot;</span>)<span class="question-mark">?</span>);
+    validation.combine(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;ninja&quot;</span>)<span class="question-mark">?</span>);
 
-    <span class="kw">let </span>status = <span class="kw">match </span><span class="kw-2">&amp;*</span>cmake_subcommand {
-        <span class="string">&quot;build&quot; </span>=&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cmake&quot;</span>);
-            cmd.args([<span class="string">&quot;-G&quot;</span>, <span class="string">&quot;Ninja&quot;</span>]);
-            cmd.args([<span class="string">&quot;-S&quot;</span>, <span class="string">&quot;.&quot;</span>]);
-            cmd.args([<span class="string">&quot;-B&quot;</span>, <span class="string">&quot;build&quot;</span>]);
-            cmd.args(context.tool_args);
-            <span class="kw">for </span>(key, value) <span class="kw">in </span>validation.env_vars {
-                cmd.env(key, value);
-            }
-            cmd.current_dir(<span class="kw-2">&amp;</span>context.config.project_root_dir);
-            cmd.status()<span class="question-mark">?
-        </span>},
-        <span class="kw">_ </span>=&gt; {
-            <span class="macro">println!</span>(<span class="string">&quot;{help}\n&quot;</span>);
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unrecognized cmake subcommand `{cmake_subcommand}`&quot;</span>).into());
-        },
+    <span class="kw">let </span>status = <span class="kw">if </span>cmake_subcommand == <span class="string">&quot;build&quot; </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cmake&quot;</span>);
+        cmd.args([<span class="string">&quot;-G&quot;</span>, <span class="string">&quot;Ninja&quot;</span>]);
+        cmd.args([<span class="string">&quot;-S&quot;</span>, <span class="string">&quot;.&quot;</span>]);
+        cmd.args([<span class="string">&quot;-B&quot;</span>, <span class="string">&quot;build&quot;</span>]);
+        cmd.args(context.tool_args);
+        <span class="kw">for </span>(key, value) <span class="kw">in </span>validation.env_vars {
+            cmd.env(key, value);
+        }
+        cmd.current_dir(<span class="kw-2">&amp;</span>context.config.project_root_dir);
+        cmd.status()<span class="question-mark">?
+    </span>} <span class="kw">else </span>{
+        <span class="macro">println!</span>(<span class="string">&quot;{help}\n&quot;</span>);
+        <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;unrecognized cmake subcommand `{cmake_subcommand}`&quot;</span>).into());
     };
 
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(status))

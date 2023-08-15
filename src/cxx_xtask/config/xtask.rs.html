@@ -55,6 +55,13 @@
 <a href="#55" id="55">55</a>
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>serde::Deserialize;
 <span class="kw">use </span>std::collections::HashMap;
 
@@ -65,7 +72,8 @@
     <span class="kw">pub </span>rust: XtaskRust,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 </span><span class="kw">pub struct </span>XtaskClang {
     <span class="kw">pub </span>matchers: HashMap&lt;String, String&gt;,
@@ -74,40 +82,46 @@
     <span class="kw">pub </span>version: String,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 </span><span class="kw">pub struct </span>XtaskPlatform {
     <span class="kw">pub </span>macos: XtaskPlatformMacos,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 #[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
 </span><span class="kw">pub struct </span>XtaskPlatformMacos {
     <span class="kw">pub </span>search_paths: Vec&lt;XtaskPlatformMacosSearchPath&gt;,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 #[serde(tag = <span class="string">&quot;kind&quot;</span>, rename_all = <span class="string">&quot;camelCase&quot;</span>)]
 </span><span class="kw">pub enum </span>XtaskPlatformMacosSearchPath {
     Homebrew,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 </span><span class="kw">pub struct </span>XtaskRust {
     <span class="kw">pub </span>components: HashMap&lt;String, XtaskRustComponent&gt;,
     <span class="kw">pub </span>toolchain: XtaskRustToolchain,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 </span><span class="kw">pub struct </span>XtaskRustComponent {
     <span class="kw">pub </span>toolchain: String,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 </span><span class="kw">pub struct </span>XtaskRustToolchain {
     <span class="kw">pub </span>nightly: String,

@@ -87,14 +87,20 @@
 <a href="#87" id="87">87</a>
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{command::Context, BoxResult};
 <span class="kw">use </span>std::{
     ffi::OsString,
     process::{Command, ExitStatus},
 };
 
-<span class="kw">pub fn </span>clang(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+<span class="doccomment">/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - Tool validation fails (missing tools, incorrect versions, etc.)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
+</span><span class="kw">pub fn </span>clang(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-clang
 
@@ -117,9 +123,7 @@ SUBCOMMANDS:
         <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
     }
 
-    <span class="kw">let </span>clang_subcommand: String = context
-        .subcommand
-        .ok_or_else(|| <span class="string">&quot;expected a subcommand for `xtask clang`&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>clang_subcommand: String = context.subcommand.ok_or(<span class="string">&quot;expected a subcommand for `xtask clang`&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">crate</span>::handler::unused(context.args)<span class="question-mark">?</span>;
 
@@ -131,10 +135,7 @@ SUBCOMMANDS:
             <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;python3&quot;</span>);
             cmd.args([tool.as_os_str()]);
             <span class="kw">if </span>!context.tool_args.contains(<span class="kw-2">&amp;</span>OsString::from(<span class="string">&quot;--clang-format-executable&quot;</span>)) {
-                <span class="kw">let </span>clang_format_tool = validation
-                    .tools
-                    .get(<span class="string">&quot;clang-format&quot;</span>)
-                    .ok_or_else(|| <span class="string">&quot;`clang-format` not found&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span>clang_format_tool = validation.tools.get(<span class="string">&quot;clang-format&quot;</span>).ok_or(<span class="string">&quot;`clang-format` not found&quot;</span>)<span class="question-mark">?</span>;
                 cmd.args([<span class="string">&quot;--clang-format-executable&quot;</span>, clang_format_tool]);
             }
             cmd.args(context.tool_args);
@@ -155,13 +156,10 @@ SUBCOMMANDS:
             <span class="kw">let </span>run_clang_tidy_tool = validation
                 .tools
                 .get(<span class="string">&quot;run-clang-tidy&quot;</span>)
-                .ok_or_else(|| <span class="string">&quot;`run-clang-tidy` not found&quot;</span>)<span class="question-mark">?</span>;
+                .ok_or(<span class="string">&quot;`run-clang-tidy` not found&quot;</span>)<span class="question-mark">?</span>;
             <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(run_clang_tidy_tool);
             <span class="kw">if </span>!context.tool_args.contains(<span class="kw-2">&amp;</span>OsString::from(<span class="string">&quot;-clang-tidy-binary&quot;</span>)) {
-                <span class="kw">let </span>clang_tidy_tool = validation
-                    .tools
-                    .get(<span class="string">&quot;clang-tidy&quot;</span>)
-                    .ok_or_else(|| <span class="string">&quot;`clang-tidy` not found&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">let </span>clang_tidy_tool = validation.tools.get(<span class="string">&quot;clang-tidy&quot;</span>).ok_or(<span class="string">&quot;`clang-tidy` not found&quot;</span>)<span class="question-mark">?</span>;
                 cmd.args([<span class="string">&quot;-clang-tidy-binary&quot;</span>, clang_tidy_tool]);
             }
             cmd.args(context.tool_args);

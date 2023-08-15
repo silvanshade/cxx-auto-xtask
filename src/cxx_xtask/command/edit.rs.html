@@ -49,10 +49,24 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{command::Context, BoxError, BoxResult};
 <span class="kw">use </span>std::process::{Command, ExitStatus};
 
-<span class="kw">pub fn </span>edit(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;, editor: String, editor_args: Vec&lt;String&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+<span class="doccomment">/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - Tool validation fails (missing tools, incorrect versions, etc.)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
+</span><span class="kw">pub fn </span>edit(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;, editor: <span class="kw-2">&amp;</span>str, editor_args: Vec&lt;String&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-edit
 
@@ -78,12 +92,12 @@ FLAGS:
 
     <span class="kw">let </span>toolchain = <span class="kw">crate</span>::config::rust::toolchain::nightly(context.config);
 
-    <span class="kw">crate</span>::validation::validate_rust_toolchain(<span class="kw-2">&amp;</span>toolchain)<span class="question-mark">?</span>;
+    <span class="kw">crate</span>::validation::validate_rust_toolchain(toolchain)<span class="question-mark">?</span>;
 
     validation.combine(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-clippy&quot;</span>)<span class="question-mark">?</span>);
     validation.combine(<span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-fmt&quot;</span>)<span class="question-mark">?</span>);
 
-    <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="kw-2">&amp;</span>editor);
+    <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(editor);
     cmd.current_dir(<span class="kw">crate</span>::workspace::project_root()<span class="question-mark">?</span>);
     cmd.args(editor_args);
     cmd.args(context.tool_args);

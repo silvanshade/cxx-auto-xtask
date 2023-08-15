@@ -80,33 +80,39 @@
 <a href="#80" id="80">80</a>
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::BoxResult;
 <span class="kw">use </span>std::process::Command;
 
-<span class="kw">pub fn </span>detect_editor(args: <span class="kw-2">&amp;mut </span>pico_args::Arguments) -&gt; BoxResult&lt;(String, Vec&lt;String&gt;)&gt; {
-    <span class="kw">fn </span>split_editor_command(editor: String) -&gt; BoxResult&lt;(String, Vec&lt;String&gt;)&gt; {
-        <span class="kw">let </span><span class="kw-2">mut </span>words = editor.split_whitespace();
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(editor) = words.next() {
-            <span class="kw">let </span>editor = editor.into();
-            <span class="kw">let </span>editor_args = words
-                .filter_map(|word| <span class="kw">if </span>word == <span class="string">&quot;--wait&quot; </span>{ <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(word.into()) })
-                .collect();
-            <span class="kw">return </span><span class="prelude-val">Ok</span>((editor, editor_args));
-        }
-        <span class="prelude-val">Err</span>(<span class="string">&quot;editor command must not be empty&quot;</span>.into())
+<span class="kw">fn </span>split_editor_command(editor: <span class="kw-2">&amp;</span>str) -&gt; BoxResult&lt;(String, Vec&lt;String&gt;)&gt; {
+    <span class="kw">let </span><span class="kw-2">mut </span>words = editor.split_whitespace();
+    <span class="kw">if let </span><span class="prelude-val">Some</span>(editor) = words.next() {
+        <span class="kw">let </span>editor = editor.into();
+        <span class="kw">let </span>editor_args = words
+            .filter_map(|word| <span class="kw">if </span>word == <span class="string">&quot;--wait&quot; </span>{ <span class="prelude-val">None </span>} <span class="kw">else </span>{ <span class="prelude-val">Some</span>(word.into()) })
+            .collect();
+        <span class="kw">return </span><span class="prelude-val">Ok</span>((editor, editor_args));
     }
+    <span class="prelude-val">Err</span>(<span class="string">&quot;editor command must not be empty&quot;</span>.into())
+}
 
-    <span class="kw">if let </span><span class="prelude-val">Ok</span>(editor) = args.free_from_str() {
-        <span class="kw">return </span>split_editor_command(editor);
+<span class="doccomment">/// # Errors
+///
+/// Will return `Err` if the editor cannot be detected from the environment.
+</span><span class="kw">pub fn </span>detect_editor(args: <span class="kw-2">&amp;mut </span>pico_args::Arguments) -&gt; BoxResult&lt;(String, Vec&lt;String&gt;)&gt; {
+    <span class="kw">if let </span><span class="prelude-val">Ok</span>(editor) = args.free_from_str::&lt;String&gt;() {
+        <span class="kw">return </span>split_editor_command(<span class="kw-2">&amp;</span>editor);
     }
     <span class="kw">if let </span><span class="prelude-val">Some</span>(editor) = detect_git_core_editor() {
-        <span class="kw">return </span>split_editor_command(editor);
+        <span class="kw">return </span>split_editor_command(<span class="kw-2">&amp;</span>editor);
     }
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(editor) = std::env::var(<span class="string">&quot;VISUAL&quot;</span>) {
-        <span class="kw">return </span>split_editor_command(editor);
+        <span class="kw">return </span>split_editor_command(<span class="kw-2">&amp;</span>editor);
     }
     <span class="kw">if let </span><span class="prelude-val">Ok</span>(editor) = std::env::var(<span class="string">&quot;EDITOR&quot;</span>) {
-        <span class="kw">return </span>split_editor_command(editor);
+        <span class="kw">return </span>split_editor_command(<span class="kw-2">&amp;</span>editor);
     }
     <span class="prelude-val">Err</span>(<span class="string">&quot;could not determine editor\nSpecify &lt;editor&gt; command or set $VISUAL or $EDITOR&quot;</span>.into())
 }

@@ -70,6 +70,17 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>rust_toolchain;
 <span class="kw">mod </span>xtask;
 
@@ -98,7 +109,16 @@
 }
 
 <span class="kw">impl </span>Config {
-    <span class="kw">pub fn </span>load(project_root_dir: <span class="kw-2">&amp;</span>Path) -&gt; BoxResult&lt;<span class="self">Self</span>&gt; {
+    <span class="doccomment">/// # Errors
+    ///
+    /// Will return `Err` under the following circumstances:
+    /// - Creating the `.xtask/bin` directory fails
+    /// - Reading the `rust-toolchaim.toml` file as text fails
+    /// - Converting the `rust-toolchain.toml` file text to TOML after loading fails
+    /// - Reading the `xtask.toml` file as text fails
+    /// - Converting the `xtask.toml` file text to TOML after loading fails
+    /// - The `xtask.rust.toolchain.nightly` and `rust_toolchain.toolchain.channel` values disagree
+    </span><span class="kw">pub fn </span>load(project_root_dir: <span class="kw-2">&amp;</span>Path) -&gt; BoxResult&lt;<span class="self">Self</span>&gt; {
         <span class="kw">crate</span>::install::create_xtask_bin_dir(project_root_dir)<span class="question-mark">?</span>;
         <span class="kw">let </span>xtask_dir = project_root_dir.join(<span class="string">&quot;.xtask&quot;</span>);
         <span class="kw">let </span>xtask_bin_dir = xtask_dir.join(<span class="string">&quot;bin&quot;</span>);
@@ -112,7 +132,7 @@
             <span class="kw">let </span>data = std::fs::read_to_string(path)<span class="question-mark">?</span>;
             toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
         </span>};
-        <span class="kw">if </span><span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;nightly-{}&quot;</span>, xtask.rust.toolchain.nightly) != <span class="kw-2">&amp;</span>rust_toolchain.toolchain.channel {
+        <span class="kw">if </span><span class="macro">format!</span>(<span class="string">&quot;nightly-{}&quot;</span>, xtask.rust.toolchain.nightly) != rust_toolchain.toolchain.channel {
             <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;&lt;xtask.toml&gt;.rust.toolchain.nightly ({}) != &lt;rust_toolchain.toml&gt;.toolchain.channel ({})&quot;</span>,
                 xtask.rust.toolchain.nightly, rust_toolchain.toolchain.channel,
@@ -133,11 +153,13 @@
     <span class="kw">pub mod </span>toolchain {
         <span class="kw">use </span><span class="kw">crate</span>::config::Config;
 
-        <span class="kw">pub fn </span>stable(_config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="attr">#[must_use]
+        </span><span class="kw">pub fn </span>stable(_config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="kw-2">&amp;</span>str {
             <span class="string">&quot;stable&quot;
         </span>}
 
-        <span class="kw">pub fn </span>nightly(config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="attr">#[must_use]
+        </span><span class="kw">pub fn </span>nightly(config: <span class="kw-2">&amp;</span>Config) -&gt; <span class="kw-2">&amp;</span>str {
             <span class="kw-2">&amp;</span>config.rust_toolchain.toolchain.channel
         }
     }

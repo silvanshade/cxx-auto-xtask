@@ -56,15 +56,17 @@
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
 <a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{command::Context, BoxResult};
 <span class="kw">use </span>std::process::{Command, ExitStatus};
 
-<span class="kw">pub fn </span>valgrind(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
+<span class="doccomment">/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - Tool validation fails (missing tools, incorrect versions, etc.)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
+</span><span class="kw">pub fn </span>valgrind(context: Context&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; BoxResult&lt;<span class="prelude-ty">Option</span>&lt;ExitStatus&gt;&gt; {
     <span class="kw">let </span>help = <span class="string">r#&quot;
 xtask-valgrind
 
@@ -92,19 +94,7 @@ SUBCOMMANDS:
     <span class="kw">let </span>validation = <span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-valgrind&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>status = <span class="kw">match </span><span class="kw-2">&amp;*</span>valgrind_subcommand {
-        <span class="string">&quot;run&quot; </span>=&gt; {
-            <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cargo&quot;</span>);
-            cmd.current_dir(<span class="kw">crate</span>::workspace::project_root()<span class="question-mark">?</span>);
-            cmd.args([<span class="string">&quot;valgrind&quot;</span>]);
-            cmd.args([valgrind_subcommand]);
-            cmd.args([<span class="string">&quot;--features&quot;</span>, <span class="string">&quot;valgrind&quot;</span>]);
-            cmd.args(context.tool_args);
-            <span class="kw">for </span>(key, value) <span class="kw">in </span>validation.env_vars {
-                cmd.env(key, value);
-            }
-            cmd.status()<span class="question-mark">?
-        </span>},
-        <span class="string">&quot;test&quot; </span>=&gt; {
+        <span class="string">&quot;run&quot; </span>| <span class="string">&quot;test&quot; </span>=&gt; {
             <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cargo&quot;</span>);
             cmd.current_dir(<span class="kw">crate</span>::workspace::project_root()<span class="question-mark">?</span>);
             cmd.args([<span class="string">&quot;valgrind&quot;</span>]);

@@ -19,6 +19,7 @@
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
 <a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
 </pre></div><pre class="rust"><code><span class="kw">use </span>serde::Deserialize;
 
 <span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
@@ -27,7 +28,8 @@
     <span class="kw">pub </span>toolchain: RustToolchainToolchain,
 }
 
-<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
 #[derive(Deserialize)]
 </span><span class="kw">pub struct </span>RustToolchainToolchain {
     <span class="kw">pub </span>channel: String,

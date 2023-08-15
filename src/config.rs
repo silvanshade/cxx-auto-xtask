@@ -15,7 +15,7 @@ pub use xtask::{
     XtaskRustToolchain,
 };
 
-use crate::BoxResult;
+use crate::{BoxError, BoxResult};
 
 pub struct Config {
     pub project_root_dir: PathBuf,
@@ -41,12 +41,24 @@ impl Config {
         let xtask_bin_dir = xtask_dir.join("bin");
         let rust_toolchain: RustToolchain = {
             let path = project_root_dir.join("rust-toolchain.toml");
-            let data = std::fs::read_to_string(path)?;
+            let data = std::fs::read_to_string(&path).map_err(|err| {
+                if err.kind() == std::io::ErrorKind::NotFound {
+                    format!("path not found: {}", path.display()).into()
+                } else {
+                    BoxError::from(err)
+                }
+            })?;
             toml::from_str(&data)?
         };
         let xtask: Xtask = {
             let path = project_root_dir.join("xtask.toml");
-            let data = std::fs::read_to_string(path)?;
+            let data = std::fs::read_to_string(&path).map_err(|err| {
+                if err.kind() == std::io::ErrorKind::NotFound {
+                    format!("path not found: {}", path.display()).into()
+                } else {
+                    BoxError::from(err)
+                }
+            })?;
             toml::from_str(&data)?
         };
         if format!("nightly-{}", xtask.rust.toolchain.nightly) != rust_toolchain.toolchain.channel {

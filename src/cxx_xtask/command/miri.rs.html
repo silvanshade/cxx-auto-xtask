@@ -95,7 +95,7 @@ SUBCOMMANDS:
 
     <span class="kw">crate</span>::validation::validate_rust_toolchain(<span class="kw-2">&amp;</span>toolchain)<span class="question-mark">?</span>;
 
-    <span class="kw">let </span>env_vars = <span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-miri&quot;</span>)<span class="question-mark">?</span>;
+    <span class="kw">let </span>validation = <span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-miri&quot;</span>)<span class="question-mark">?</span>;
 
     <span class="kw">let </span>status = <span class="kw">match </span><span class="kw-2">&amp;*</span>miri_subcommand {
         <span class="string">&quot;run&quot; </span>=&gt; {
@@ -104,7 +104,7 @@ SUBCOMMANDS:
             cmd.args([<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;+{toolchain}&quot;</span>), <span class="string">&quot;miri&quot;</span>]);
             cmd.args([miri_subcommand]);
             cmd.args(context.tool_args);
-            <span class="kw">for </span>(key, value) <span class="kw">in </span>env_vars {
+            <span class="kw">for </span>(key, value) <span class="kw">in </span>validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()<span class="question-mark">?
@@ -115,7 +115,7 @@ SUBCOMMANDS:
             cmd.args([<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;+{toolchain}&quot;</span>), <span class="string">&quot;miri&quot;</span>]);
             cmd.args([miri_subcommand]);
             cmd.args(context.tool_args);
-            <span class="kw">for </span>(key, value) <span class="kw">in </span>env_vars {
+            <span class="kw">for </span>(key, value) <span class="kw">in </span>validation.env_vars {
                 cmd.env(key, value);
             }
             cmd.status()<span class="question-mark">?

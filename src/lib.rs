@@ -1,4 +1,5 @@
 #![deny(clippy::all)]
+#![deny(clippy::pedantic)]
 #![deny(unsafe_code)]
 
 pub mod command;

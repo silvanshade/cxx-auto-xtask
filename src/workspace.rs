@@ -1,6 +1,14 @@
 use crate::BoxResult;
 use std::{path::PathBuf, process::Command};
 
+/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - The command process for `cargo metadata --format-version=1` fails to start
+/// - The command invocation fails with non-zero exit status
+/// - The command invocation fails to produce valid UTF-8 output
+/// - The command invocation fails to produce valid JSON output
+/// - `workspace_root` is not found in the JSON output
 pub fn project_root() -> BoxResult<PathBuf> {
     let data = Command::new("cargo")
         .args(["metadata", "--format-version=1"])
@@ -13,8 +21,7 @@ pub fn project_root() -> BoxResult<PathBuf> {
     let path = json
         .get("workspace_root")
         .iter()
-        .flat_map(|val| val.as_str().map(PathBuf::from))
-        .next()
+        .find_map(|val| val.as_str().map(PathBuf::from))
         .ok_or("`workspace_root` not found in `cargo metadata` output")?;
     Ok(path)
 }

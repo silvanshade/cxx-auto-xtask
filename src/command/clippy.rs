@@ -1,6 +1,12 @@
 use crate::{command::Context, BoxResult};
 use std::process::{Command, ExitStatus};
 
+/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
 pub fn clippy(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-clippy
@@ -22,7 +28,7 @@ FLAGS:
 
     let toolchain = crate::config::rust::toolchain::nightly(context.config);
 
-    crate::validation::validate_rust_toolchain(&toolchain)?;
+    crate::validation::validate_rust_toolchain(toolchain)?;
 
     let validation = crate::validation::validate_tool(context.config, "cargo-clippy")?;
 

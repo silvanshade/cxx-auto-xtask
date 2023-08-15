@@ -1,30 +1,33 @@
 use crate::BoxResult;
 use std::process::Command;
 
-pub fn detect_editor(args: &mut pico_args::Arguments) -> BoxResult<(String, Vec<String>)> {
-    fn split_editor_command(editor: String) -> BoxResult<(String, Vec<String>)> {
-        let mut words = editor.split_whitespace();
-        if let Some(editor) = words.next() {
-            let editor = editor.into();
-            let editor_args = words
-                .filter_map(|word| if word == "--wait" { None } else { Some(word.into()) })
-                .collect();
-            return Ok((editor, editor_args));
-        }
-        Err("editor command must not be empty".into())
+fn split_editor_command(editor: &str) -> BoxResult<(String, Vec<String>)> {
+    let mut words = editor.split_whitespace();
+    if let Some(editor) = words.next() {
+        let editor = editor.into();
+        let editor_args = words
+            .filter_map(|word| if word == "--wait" { None } else { Some(word.into()) })
+            .collect();
+        return Ok((editor, editor_args));
     }
+    Err("editor command must not be empty".into())
+}
 
-    if let Ok(editor) = args.free_from_str() {
-        return split_editor_command(editor);
+/// # Errors
+///
+/// Will return `Err` if the editor cannot be detected from the environment.
+pub fn detect_editor(args: &mut pico_args::Arguments) -> BoxResult<(String, Vec<String>)> {
+    if let Ok(editor) = args.free_from_str::<String>() {
+        return split_editor_command(&editor);
     }
     if let Some(editor) = detect_git_core_editor() {
-        return split_editor_command(editor);
+        return split_editor_command(&editor);
     }
     if let Ok(editor) = std::env::var("VISUAL") {
-        return split_editor_command(editor);
+        return split_editor_command(&editor);
     }
     if let Ok(editor) = std::env::var("EDITOR") {
-        return split_editor_command(editor);
+        return split_editor_command(&editor);
     }
     Err("could not determine editor\nSpecify <editor> command or set $VISUAL or $EDITOR".into())
 }

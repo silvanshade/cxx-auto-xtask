@@ -1,7 +1,14 @@
 use crate::{command::Context, BoxError, BoxResult};
 use std::process::{Command, ExitStatus};
 
-pub fn edit(context: Context<'_>, editor: String, editor_args: Vec<String>) -> BoxResult<Option<ExitStatus>> {
+/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - Tool validation fails (missing tools, incorrect versions, etc.)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
+pub fn edit(context: Context<'_>, editor: &str, editor_args: Vec<String>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-edit
 
@@ -27,12 +34,12 @@ FLAGS:
 
     let toolchain = crate::config::rust::toolchain::nightly(context.config);
 
-    crate::validation::validate_rust_toolchain(&toolchain)?;
+    crate::validation::validate_rust_toolchain(toolchain)?;
 
     validation.combine(crate::validation::validate_tool(context.config, "cargo-clippy")?);
     validation.combine(crate::validation::validate_tool(context.config, "cargo-fmt")?);
 
-    let mut cmd = Command::new(&editor);
+    let mut cmd = Command::new(editor);
     cmd.current_dir(crate::workspace::project_root()?);
     cmd.args(editor_args);
     cmd.args(context.tool_args);

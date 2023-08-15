@@ -4,6 +4,13 @@ use std::{
     process::{Command, ExitStatus},
 };
 
+/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - Tool validation fails (missing tools, incorrect versions, etc.)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
 pub fn clang(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-clang
@@ -27,9 +34,7 @@ SUBCOMMANDS:
         return Ok(None);
     }
 
-    let clang_subcommand: String = context
-        .subcommand
-        .ok_or_else(|| "expected a subcommand for `xtask clang`")?;
+    let clang_subcommand: String = context.subcommand.ok_or("expected a subcommand for `xtask clang`")?;
 
     crate::handler::unused(context.args)?;
 
@@ -41,10 +46,7 @@ SUBCOMMANDS:
             let mut cmd = Command::new("python3");
             cmd.args([tool.as_os_str()]);
             if !context.tool_args.contains(&OsString::from("--clang-format-executable")) {
-                let clang_format_tool = validation
-                    .tools
-                    .get("clang-format")
-                    .ok_or_else(|| "`clang-format` not found")?;
+                let clang_format_tool = validation.tools.get("clang-format").ok_or("`clang-format` not found")?;
                 cmd.args(["--clang-format-executable", clang_format_tool]);
             }
             cmd.args(context.tool_args);
@@ -65,13 +67,10 @@ SUBCOMMANDS:
             let run_clang_tidy_tool = validation
                 .tools
                 .get("run-clang-tidy")
-                .ok_or_else(|| "`run-clang-tidy` not found")?;
+                .ok_or("`run-clang-tidy` not found")?;
             let mut cmd = Command::new(run_clang_tidy_tool);
             if !context.tool_args.contains(&OsString::from("-clang-tidy-binary")) {
-                let clang_tidy_tool = validation
-                    .tools
-                    .get("clang-tidy")
-                    .ok_or_else(|| "`clang-tidy` not found")?;
+                let clang_tidy_tool = validation.tools.get("clang-tidy").ok_or("`clang-tidy` not found")?;
                 cmd.args(["-clang-tidy-binary", clang_tidy_tool]);
             }
             cmd.args(context.tool_args);

@@ -1,6 +1,12 @@
 use crate::{command::Context, BoxResult};
 use std::process::{Command, ExitStatus};
 
+/// # Errors
+///
+/// Will return `Err` under the following circumstances:
+/// - Argument processing fails (e.g. invalid arguments)
+/// - The command process fails to start
+/// - The command invocation fails with non-zero exit status
 pub fn test(context: Context<'_>) -> BoxResult<Option<ExitStatus>> {
     let help = r#"
 xtask-test

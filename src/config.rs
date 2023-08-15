@@ -26,6 +26,15 @@ pub struct Config {
 }
 
 impl Config {
+    /// # Errors
+    ///
+    /// Will return `Err` under the following circumstances:
+    /// - Creating the `.xtask/bin` directory fails
+    /// - Reading the `rust-toolchaim.toml` file as text fails
+    /// - Converting the `rust-toolchain.toml` file text to TOML after loading fails
+    /// - Reading the `xtask.toml` file as text fails
+    /// - Converting the `xtask.toml` file text to TOML after loading fails
+    /// - The `xtask.rust.toolchain.nightly` and `rust_toolchain.toolchain.channel` values disagree
     pub fn load(project_root_dir: &Path) -> BoxResult<Self> {
         crate::install::create_xtask_bin_dir(project_root_dir)?;
         let xtask_dir = project_root_dir.join(".xtask");
@@ -40,7 +49,7 @@ impl Config {
             let data = std::fs::read_to_string(path)?;
             toml::from_str(&data)?
         };
-        if &format!("nightly-{}", xtask.rust.toolchain.nightly) != &rust_toolchain.toolchain.channel {
+        if format!("nightly-{}", xtask.rust.toolchain.nightly) != rust_toolchain.toolchain.channel {
             return Err(format!(
                 "<xtask.toml>.rust.toolchain.nightly ({}) != <rust_toolchain.toml>.toolchain.channel ({})",
                 xtask.rust.toolchain.nightly, rust_toolchain.toolchain.channel,
@@ -61,10 +70,12 @@ pub mod rust {
     pub mod toolchain {
         use crate::config::Config;
 
+        #[must_use]
         pub fn stable(_config: &Config) -> &str {
             "stable"
         }
 
+        #[must_use]
         pub fn nightly(config: &Config) -> &str {
             &config.rust_toolchain.toolchain.channel
         }

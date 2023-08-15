@@ -6,6 +6,7 @@ pub struct RustToolchain {
     pub toolchain: RustToolchainToolchain,
 }
 
+#[allow(clippy::module_name_repetitions)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Deserialize)]
 pub struct RustToolchainToolchain {

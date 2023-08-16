@@ -57,6 +57,12 @@ SUBCOMMANDS:
         },
         "tidy" => {
             {
+                let mut cmd = Command::new("cargo");
+                cmd.args(["check"]);
+                let status = cmd.status()?;
+                crate::handler::subcommand_result("cargo check", Ok(Some(status)));
+            }
+            {
                 let config = context.config;
                 let mut args = pico_args::Arguments::from_vec(vec!["build".into()]);
                 let tool_args = vec![];

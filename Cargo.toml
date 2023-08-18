@@ -1,12 +1,12 @@
 [package]
 publish = false
 edition = "2021"
-name = "cxx-xtask"
+name = "cxx-auto-xtask"
 version = "0.0.1"
 authors = ["silvanshade <silvanshade@users.noreply.github.com>"]
 license = "Apache-2.0 WITH LLVM-exception"
-repository = "https://github.com/silvanshade/cxx-xtask"
-documentation = "https://silvanshade.github.io/cxx-xtask/cxx_xtask"
+repository = "https://github.com/silvanshade/cxx-auto-xtask"
+documentation = "https://silvanshade.github.io/cxx-auto-xtask/cxx_auto_xtask"
 
 [features]
 debug = []

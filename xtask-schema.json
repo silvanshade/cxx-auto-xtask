@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/silvanshade/cxx-xtask/main/xtask-schema.json",
+  "$id": "https://raw.githubusercontent.com/silvanshade/cxx-auto-xtask/main/xtask-schema.json",
   "type": "object",
   "required": ["clang", "rust"],
   "additionalProperties": false,

@@ -1,1 +1,1 @@
-window.ALL_CRATES = ["cxx_xtask"];
+window.ALL_CRATES = ["cxx_auto_xtask"];

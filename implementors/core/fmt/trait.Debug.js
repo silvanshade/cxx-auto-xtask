@@ -1,3 +1,3 @@
 (function() {var implementors = {
-"cxx_xtask":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> for <a class=\"struct\" href=\"cxx_xtask/validation/struct.Validation.html\" title=\"struct cxx_xtask::validation::Validation\">Validation</a>"]]
+"cxx_auto_xtask":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> for <a class=\"struct\" href=\"cxx_auto_xtask/validation/struct.Validation.html\" title=\"struct cxx_auto_xtask::validation::Validation\">Validation</a>"]]
 };if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

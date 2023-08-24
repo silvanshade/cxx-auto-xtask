@@ -37,13 +37,6 @@
 <a href="#37" id="37">37</a>
 <a href="#38" id="38">38</a>
 <a href="#39" id="39">39</a>
-<a href="#40" id="40">40</a>
-<a href="#41" id="41">41</a>
-<a href="#42" id="42">42</a>
-<a href="#43" id="43">43</a>
-<a href="#44" id="44">44</a>
-<a href="#45" id="45">45</a>
-<a href="#46" id="46">46</a>
 </pre></div><pre class="rust"><code><span class="kw">use crate</span>::{command::Context, BoxResult};
 <span class="kw">use </span>std::process::{Command, ExitStatus};
 
@@ -75,17 +68,10 @@ FLAGS:
 
     <span class="kw">let </span>toolchain = <span class="kw">crate</span>::config::rust::toolchain::nightly(context.config);
 
-    <span class="kw">crate</span>::validation::validate_rust_toolchain(toolchain)<span class="question-mark">?</span>;
-
-    <span class="kw">let </span>validation = <span class="kw">crate</span>::validation::validate_tool(context.config, <span class="string">&quot;cargo-doc&quot;</span>)<span class="question-mark">?</span>;
-
     <span class="kw">let </span><span class="kw-2">mut </span>cmd = Command::new(<span class="string">&quot;cargo&quot;</span>);
     cmd.current_dir(<span class="kw">crate</span>::workspace::project_root()<span class="question-mark">?</span>);
     cmd.args([<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;+{toolchain}&quot;</span>), <span class="string">&quot;doc&quot;</span>]);
     cmd.args(context.tool_args);
-    <span class="kw">for </span>(key, value) <span class="kw">in </span>validation.env_vars {
-        cmd.env(key, value);
-    }
     <span class="kw">let </span>status = cmd.status()<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(status))

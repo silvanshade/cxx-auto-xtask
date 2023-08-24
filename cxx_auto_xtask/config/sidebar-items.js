@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["XtaskPlatformMacosSearchPath"],"mod":["rust"],"struct":["Config","RustToolchain","RustToolchainToolchain","Xtask","XtaskClang","XtaskPlatform","XtaskPlatformMacos","XtaskRust","XtaskRustComponent","XtaskRustToolchain"]};
+window.SIDEBAR_ITEMS = {"mod":["rust"],"struct":["CMakeContext","Config","RustToolchain","RustToolchainToolchain"]};

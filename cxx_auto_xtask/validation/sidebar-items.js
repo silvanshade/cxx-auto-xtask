@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["validate_rust_toolchain","validate_tool"],"struct":["Validation"]};

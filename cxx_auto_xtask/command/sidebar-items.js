@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["build","check","clang","clippy","cmake","doc","edit","fmt","miri","tarpaulin","test","udeps","valgrind"],"struct":["Context"]};
+window.SIDEBAR_ITEMS = {"fn":["build","check","clippy","cmake","doc","fmt","miri","tarpaulin","test","udeps","valgrind"],"mod":["clang"],"struct":["Context"]};

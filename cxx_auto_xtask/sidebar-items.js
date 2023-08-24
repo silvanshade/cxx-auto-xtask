@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["command","config","detection","handler","install","validation","workspace"],"type":["BoxError","BoxResult"]};
+window.SIDEBAR_ITEMS = {"mod":["command","config","handler","workspace"],"type":["BoxError","BoxResult"]};

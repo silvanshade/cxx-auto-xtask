@@ -49,14 +49,12 @@
 <a href="#49" id="49">49</a>
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
-<a href="#52" id="52">52</a>
 </pre></div><pre class="rust"><code><span class="kw">mod </span>build;
 <span class="kw">mod </span>check;
-<span class="kw">mod </span>clang;
+<span class="kw">pub mod </span>clang;
 <span class="kw">mod </span>clippy;
 <span class="kw">mod </span>cmake;
 <span class="kw">mod </span>doc;
-<span class="kw">mod </span>edit;
 <span class="kw">mod </span>fmt;
 <span class="kw">mod </span>miri;
 <span class="kw">mod </span>tarpaulin;
@@ -71,7 +69,6 @@
     clippy::clippy,
     cmake::cmake,
     doc::doc,
-    edit::edit,
     fmt::fmt,
     miri::miri,
     tarpaulin::tarpaulin,
@@ -81,13 +78,14 @@
 };
 
 <span class="kw">use </span><span class="kw">crate</span>::config::Config;
-<span class="kw">use </span>std::{ffi::OsString, path::PathBuf};
+<span class="kw">use </span>camino::Utf8PathBuf;
+<span class="kw">use </span>std::ffi::OsString;
 
 <span class="kw">pub struct </span>Context&lt;<span class="lifetime">&#39;a</span>&gt; {
     <span class="kw">pub </span>config: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>Config,
     <span class="kw">pub </span>args: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span><span class="kw-2">mut </span>pico_args::Arguments,
     <span class="kw">pub </span>tool_args: Vec&lt;OsString&gt;,
-    <span class="kw">pub </span>current_dir: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+    <span class="kw">pub </span>current_dir: <span class="prelude-ty">Option</span>&lt;Utf8PathBuf&gt;,
     <span class="kw">pub </span>subcommand: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 

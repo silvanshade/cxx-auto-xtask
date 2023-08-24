@@ -92,31 +92,44 @@
 <a href="#92" id="92">92</a>
 <a href="#93" id="93">93</a>
 <a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-</pre></div><pre class="rust"><code><span class="kw">mod </span>rust_toolchain;
-<span class="kw">mod </span>xtask;
+</pre></div><pre class="rust"><code><span class="kw">use crate</span>::{BoxError, BoxResult};
+<span class="kw">use </span>camino::Utf8PathBuf;
+<span class="kw">use </span>serde::Deserialize;
 
-<span class="kw">use </span>std::path::{Path, PathBuf};
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+#[derive(Deserialize)]
+#[serde(rename_all = <span class="string">&quot;SCREAMING_SNAKE_CASE&quot;</span>)]
+</span><span class="kw">pub struct </span>CMakeContext {
+    <span class="kw">pub </span>bin_clang_format: Utf8PathBuf,
+    <span class="kw">pub </span>bin_clang_tidy: Utf8PathBuf,
+    <span class="kw">pub </span>bin_run_clang_format: Utf8PathBuf,
+    <span class="kw">pub </span>bin_run_clang_tidy: Utf8PathBuf,
+}
 
-<span class="kw">pub use </span>rust_toolchain::{RustToolchain, RustToolchainToolchain};
-<span class="kw">pub use </span>xtask::{
-    Xtask,
-    XtaskClang,
-    XtaskPlatform,
-    XtaskPlatformMacos,
-    XtaskPlatformMacosSearchPath,
-    XtaskRust,
-    XtaskRustComponent,
-    XtaskRustToolchain,
-};
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+#[derive(Deserialize)]
+</span><span class="kw">pub struct </span>RustToolchain {
+    <span class="kw">pub </span>toolchain: RustToolchainToolchain,
+}
 
-<span class="kw">use crate</span>::{BoxError, BoxResult};
+<span class="attr">#[allow(clippy::module_name_repetitions)]
+#[cfg_attr(feature = <span class="string">&quot;debug&quot;</span>, derive(Debug))]
+#[derive(Deserialize)]
+</span><span class="kw">pub struct </span>RustToolchainToolchain {
+    <span class="kw">pub </span>channel: String,
+    <span class="attr">#[serde(default, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    </span><span class="kw">pub </span>path: <span class="prelude-ty">Option</span>&lt;Utf8PathBuf&gt;,
+    <span class="attr">#[serde(default, skip_serializing_if = <span class="string">&quot;Option::is_none&quot;</span>)]
+    </span><span class="kw">pub </span>profile: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    <span class="attr">#[serde(default, skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>)]
+    </span><span class="kw">pub </span>components: Vec&lt;String&gt;,
+    <span class="attr">#[serde(default, skip_serializing_if = <span class="string">&quot;Vec::is_empty&quot;</span>)]
+    </span><span class="kw">pub </span>targets: Vec&lt;String&gt;,
+}
 
 <span class="kw">pub struct </span>Config {
-    <span class="kw">pub </span>project_root_dir: PathBuf,
-    <span class="kw">pub </span>xtask_dir: PathBuf,
-    <span class="kw">pub </span>xtask_bin_dir: PathBuf,
-    <span class="kw">pub </span>xtask: Xtask,
+    <span class="kw">pub </span>cmake_context: CMakeContext,
+    <span class="kw">pub </span>cargo_metadata: cargo_metadata::Metadata,
     <span class="kw">pub </span>rust_toolchain: RustToolchain,
 }
 
@@ -124,50 +137,35 @@
     <span class="doccomment">/// # Errors
     ///
     /// Will return `Err` under the following circumstances:
-    /// - Creating the `.xtask/bin` directory fails
-    /// - Reading the `rust-toolchaim.toml` file as text fails
-    /// - Converting the `rust-toolchain.toml` file text to TOML after loading fails
-    /// - Reading the `xtask.toml` file as text fails
-    /// - Converting the `xtask.toml` file text to TOML after loading fails
-    /// - The `xtask.rust.toolchain.nightly` and `rust_toolchain.toolchain.channel` values disagree
-    </span><span class="kw">pub fn </span>load(project_root_dir: <span class="kw-2">&amp;</span>Path) -&gt; BoxResult&lt;<span class="self">Self</span>&gt; {
-        <span class="kw">crate</span>::install::create_xtask_bin_dir(project_root_dir)<span class="question-mark">?</span>;
-        <span class="kw">let </span>xtask_dir = project_root_dir.join(<span class="string">&quot;.xtask&quot;</span>);
-        <span class="kw">let </span>xtask_bin_dir = xtask_dir.join(<span class="string">&quot;bin&quot;</span>);
+    /// - `cargo metadata` fails
+    /// - Reading the `rust-toolchain.toml` file as text fails
+    </span><span class="kw">pub fn </span>load() -&gt; BoxResult&lt;<span class="self">Self</span>&gt; {
+        <span class="kw">let </span>cargo_metadata = cargo_metadata::MetadataCommand::new().exec()<span class="question-mark">?</span>;
+        <span class="kw">let </span>cmake_context = {
+            <span class="kw">let </span>path = cargo_metadata.workspace_root.join(<span class="string">&quot;build/cxx-auto-context.json&quot;</span>);
+            <span class="kw">let </span>data = std::fs::read_to_string(<span class="kw-2">&amp;</span>path).map_err(|err| {
+                <span class="kw">if </span>err.kind() == std::io::ErrorKind::NotFound {
+                    <span class="macro">format!</span>(<span class="string">&quot;Path not found: {}&quot;</span>, path.as_std_path().display()).into()
+                } <span class="kw">else </span>{
+                    BoxError::from(err)
+                }
+            })<span class="question-mark">?</span>;
+            serde_json::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
+        </span>};
         <span class="kw">let </span>rust_toolchain: RustToolchain = {
-            <span class="kw">let </span>path = project_root_dir.join(<span class="string">&quot;rust-toolchain.toml&quot;</span>);
+            <span class="kw">let </span>path = cargo_metadata.workspace_root.join(<span class="string">&quot;rust-toolchain.toml&quot;</span>);
             <span class="kw">let </span>data = std::fs::read_to_string(<span class="kw-2">&amp;</span>path).map_err(|err| {
                 <span class="kw">if </span>err.kind() == std::io::ErrorKind::NotFound {
-                    <span class="macro">format!</span>(<span class="string">&quot;path not found: {}&quot;</span>, path.display()).into()
+                    <span class="macro">format!</span>(<span class="string">&quot;Path not found: {}&quot;</span>, path.as_std_path().display()).into()
                 } <span class="kw">else </span>{
                     BoxError::from(err)
                 }
             })<span class="question-mark">?</span>;
             toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
         </span>};
-        <span class="kw">let </span>xtask: Xtask = {
-            <span class="kw">let </span>path = project_root_dir.join(<span class="string">&quot;xtask.toml&quot;</span>);
-            <span class="kw">let </span>data = std::fs::read_to_string(<span class="kw-2">&amp;</span>path).map_err(|err| {
-                <span class="kw">if </span>err.kind() == std::io::ErrorKind::NotFound {
-                    <span class="macro">format!</span>(<span class="string">&quot;path not found: {}&quot;</span>, path.display()).into()
-                } <span class="kw">else </span>{
-                    BoxError::from(err)
-                }
-            })<span class="question-mark">?</span>;
-            toml::from_str(<span class="kw-2">&amp;</span>data)<span class="question-mark">?
-        </span>};
-        <span class="kw">if </span><span class="macro">format!</span>(<span class="string">&quot;nightly-{}&quot;</span>, xtask.rust.toolchain.nightly) != rust_toolchain.toolchain.channel {
-            <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;&lt;xtask.toml&gt;.rust.toolchain.nightly ({}) != &lt;rust_toolchain.toml&gt;.toolchain.channel ({})&quot;</span>,
-                xtask.rust.toolchain.nightly, rust_toolchain.toolchain.channel,
-            )
-            .into());
-        }
         <span class="prelude-val">Ok</span>(Config {
-            project_root_dir: project_root_dir.to_path_buf(),
-            xtask_dir,
-            xtask_bin_dir,
-            xtask,
+            cmake_context,
+            cargo_metadata,
             rust_toolchain,
         })
     }

@@ -28,13 +28,12 @@ SUBCOMMANDS:
         return Ok(None);
     }
 
-    let cmake_subcommand: String = context.args.free_from_str()?;
+    let Some(cmake_subcommand) = context.args.opt_free_from_str::<String>()? else {
+        println!("{help}\n");
+        return Ok(None);
+    };
 
     crate::handler::unused(context.args)?;
-
-    let mut validation = crate::validation::Validation::default();
-    validation.combine(crate::validation::validate_tool(context.config, "cmake")?);
-    validation.combine(crate::validation::validate_tool(context.config, "ninja")?);
 
     let status = if cmake_subcommand == "build" {
         let mut cmd = Command::new("cmake");
@@ -42,14 +41,11 @@ SUBCOMMANDS:
         cmd.args(["-S", "."]);
         cmd.args(["-B", "build"]);
         cmd.args(context.tool_args);
-        for (key, value) in validation.env_vars {
-            cmd.env(key, value);
-        }
-        cmd.current_dir(&context.config.project_root_dir);
+        cmd.current_dir(&context.config.cargo_metadata.workspace_root);
         cmd.status()?
     } else {
         println!("{help}\n");
-        return Err(format!("unrecognized cmake subcommand `{cmake_subcommand}`").into());
+        return Err(format!("unrecognized `xtask cmake` subcommand `{cmake_subcommand}`").into());
     };
 
     Ok(Some(status))

@@ -1,10 +1,9 @@
 mod build;
 mod check;
-mod clang;
+pub mod clang;
 mod clippy;
 mod cmake;
 mod doc;
-mod edit;
 mod fmt;
 mod miri;
 mod tarpaulin;
@@ -19,7 +18,6 @@ pub use self::{
     clippy::clippy,
     cmake::cmake,
     doc::doc,
-    edit::edit,
     fmt::fmt,
     miri::miri,
     tarpaulin::tarpaulin,
@@ -29,13 +27,14 @@ pub use self::{
 };
 
 use crate::config::Config;
-use std::{ffi::OsString, path::PathBuf};
+use camino::Utf8PathBuf;
+use std::ffi::OsString;
 
 pub struct Context<'a> {
     pub config: &'a Config,
     pub args: &'a mut pico_args::Arguments,
     pub tool_args: Vec<OsString>,
-    pub current_dir: Option<PathBuf>,
+    pub current_dir: Option<Utf8PathBuf>,
     pub subcommand: Option<String>,
 }
 

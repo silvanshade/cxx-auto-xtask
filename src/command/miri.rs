@@ -20,7 +20,6 @@ FLAGS:
 -- '...'            Extra arguments to pass to the cargo command
 
 SUBCOMMANDS:
-    run             Run the project's binary with cargo-miri
     test            Run the project's tests  with cargo-miri
 "#
     .trim();
@@ -29,31 +28,27 @@ SUBCOMMANDS:
         return Ok(None);
     }
 
-    let miri_subcommand: String = context.args.free_from_str()?;
+    let Some(miri_subcommand) = context.args.opt_free_from_str::<String>()? else {
+        println!("{help}\n");
+        return Ok(None);
+    };
 
     crate::handler::unused(context.args)?;
 
     let toolchain = crate::config::rust::toolchain::nightly(context.config);
 
-    crate::validation::validate_rust_toolchain(toolchain)?;
-
-    let validation = crate::validation::validate_tool(context.config, "cargo-miri")?;
-
     let status = match &*miri_subcommand {
-        "run" | "test" => {
+        "test" => {
             let mut cmd = Command::new("cargo");
             cmd.current_dir(crate::workspace::project_root()?);
             cmd.args([&format!("+{toolchain}"), "miri"]);
             cmd.args([miri_subcommand]);
             cmd.args(context.tool_args);
-            for (key, value) in validation.env_vars {
-                cmd.env(key, value);
-            }
             cmd.status()?
         },
         _ => {
             println!("{help}\n");
-            return Err(format!("unrecognized miri subcommand `{miri_subcommand}`").into());
+            return Err(format!("unrecognized `xtask miri` subcommand `{miri_subcommand}`").into());
         },
     };
 

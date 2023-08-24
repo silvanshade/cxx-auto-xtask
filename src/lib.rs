@@ -4,10 +4,10 @@
 
 pub mod command;
 pub mod config;
-pub mod detection;
+// pub mod detection;
 pub mod handler;
-pub mod install;
-pub mod validation;
+// pub mod install;
+// pub mod validation;
 pub mod workspace;
 
 pub type BoxError = Box<dyn std::error::Error + Send + Sync + 'static>;
